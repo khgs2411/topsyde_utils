@@ -1,3 +1,5 @@
+import { I_ApplicationResponse } from "./types";
+
 export const RESPONSE_INIT = (status?: number, headers?: HeadersInit): ResponseInit => {
 	return {
 		status: status ?? 200,
@@ -16,12 +18,21 @@ export const RESPONSE_METHOD_OPTIONS = {
 };
 
 class Application {
-	public static Response(data: any, status: number = 200, headers?: HeadersInit): Response {
-		return Response.json({ status: true, data }, RESPONSE_INIT(status, headers));
+	public static Response<T>(data: T, status: number = 200, headers?: HeadersInit): Response {
+		const response: I_ApplicationResponse<T> = {
+			status: true,
+			data,
+		};
+		return Response.json(response, RESPONSE_INIT(status, headers));
 	}
 
 	public static Error<T extends BodyInit | unknown | Error>(error: T, status: number = 200, headers?: HeadersInit) {
-		return Response.json({ status: false, error }, RESPONSE_INIT(status, headers));
+		const response: I_ApplicationResponse<T> = {
+			status: false,
+			data: error,
+			error,
+		};
+		return Response.json(response, RESPONSE_INIT(status, headers));
 	}
 
 	public static Throw<T extends BodyInit | unknown | Error>(error: T, status: number = 400, headers?: HeadersInit) {

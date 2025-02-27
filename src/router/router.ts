@@ -1,23 +1,19 @@
-import { Controller } from "./routes";
-import Router_Internal from "./router.internal";
 import { ERROR_CODE } from "../errors";
 import Guards from "../guards";
 import Singleton from "../singleton";
+import Router_Internal from "./router.internal";
+import { Routes } from "./routes";
 
 type MethodMap<T> = {
 	[method: string]: (req: Request) => Promise<T>;
 };
 
-export type Routes = {
-	[key: string]: new () => Controller;
-};
-
 class Router extends Singleton {
 	private internal: Router_Internal;
 
-	public constructor() {
+	public constructor(routes?: Routes) {
 		super();
-		this.internal = new Router_Internal();
+		this.internal = new Router_Internal(routes);
 	}
 
 	private setRoutes(routes: Routes): void {

@@ -1,9 +1,7 @@
-import type { Routes } from "./router";
+import Controller from "../server/controller";
+
+export type Routes = {
+	[key: string]: new () => Controller;
+};
 
 export const routes: Routes = {};
-
-export class Controller {
-	call: any;
-}
-
-class MockController extends Controller {}

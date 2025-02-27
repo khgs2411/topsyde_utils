@@ -10,6 +10,7 @@ export { default as Initializable } from "./initializable";
 export { default as Lib } from "./lib";
 export { default as RouterRouter_internal } from "./router/router.internal";
 export { default as RouterRouter } from "./router/router";
+export { default as ServerController } from "./server/controller";
 export { default as Singleton } from "./singleton";
 export { default as Throwable } from "./throwable";
 
@@ -23,3 +24,7 @@ export { ERROR_CODE, HTTP_ERROR_CODE, WS_ERROR_CODE } from "./errors";
 // Create module for router
 import * as RouterModule from "./router";
 export { RouterModule as Router };
+
+// Create module for server
+import * as ServerModule from "./server";
+export { ServerModule as Server };

@@ -33,7 +33,7 @@ export default Initializable;
 /**
  * Configuration options for initialization
  */
-export interface InitOptions {
+export interface InitializableOptions {
 	/** Number of retry attempts (default: 25) */
 	retries?: number;
 
@@ -105,7 +105,7 @@ class Initializable {
 	 * Creates a new Initializable instance
 	 * @param options Configuration options
 	 */
-	constructor(options: InitOptions = {}) {
+	constructor(options: InitializableOptions = {}) {
 		this.retries = options.retries ?? 25;
 		this.retryInterval = options.retryInterval ?? 200;
 		this.timeout = options.timeout;
