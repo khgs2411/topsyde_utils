@@ -71,10 +71,6 @@ abstract class Singleton {
 		// Ensure the constructor is only called from getInstance
 		const constructorName = this.constructor.name;
 		const callerName = new Error().stack?.split("\n")[2]?.trim() || "";
-
-		if (!callerName.includes("getInstance")) {
-			console.warn(`${constructorName} is a singleton and should be accessed via ${constructorName}.getInstance()`);
-		}
 	}
 
 	/**
