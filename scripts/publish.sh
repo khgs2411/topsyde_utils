@@ -29,7 +29,7 @@ fi
 
 # Update version in package.json
 echo -e "${YELLOW}Updating version in package.json...${NC}"
-bun version $VERSION --no-git-tag-version
+npm version $VERSION --no-git-tag-version
 
 # Generate index files
 echo -e "${YELLOW}Generating index files...${NC}"

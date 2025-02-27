@@ -8,6 +8,8 @@ A comprehensive bundle of TypeScript utility classes and functions designed to s
 npm install topsyde-utils
 # or
 yarn add topsyde-utils
+# or
+bun add topsyde-utils
 ```
 
 ## Features
