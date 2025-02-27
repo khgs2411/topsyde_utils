@@ -18,7 +18,7 @@ export const RESPONSE_METHOD_OPTIONS = {
 };
 
 class Application {
-	public static Response<T>(data: T, status: number = 200, headers?: HeadersInit): Response {
+	public static Response<T>(data: T, status = 200, headers?: HeadersInit): Response {
 		const response: I_ApplicationResponse<T> = {
 			status: true,
 			data,
@@ -26,7 +26,7 @@ class Application {
 		return Response.json(response, RESPONSE_INIT(status, headers));
 	}
 
-	public static Error<T extends BodyInit | unknown | Error>(error: T, status: number = 200, headers?: HeadersInit) {
+	public static Error<T extends BodyInit | unknown | Error>(error: T, status = 200, headers?: HeadersInit) {
 		const response: I_ApplicationResponse<T> = {
 			status: false,
 			data: error,
@@ -35,7 +35,7 @@ class Application {
 		return Response.json(response, RESPONSE_INIT(status, headers));
 	}
 
-	public static Throw<T extends BodyInit | unknown | Error>(error: T, status: number = 400, headers?: HeadersInit) {
+	public static Throw<T extends BodyInit | unknown | Error>(error: T, status = 400, headers?: HeadersInit) {
 		return Response.json(error, RESPONSE_INIT(status, headers));
 	}
 }

@@ -84,13 +84,13 @@ class Initializable {
 	private retryInterval: number;
 
 	/** Whether initialization has completed successfully */
-	private _initialized: boolean = false;
+	private _initialized = false;
 
 	/** Whether initialization is in progress */
-	private initializing: boolean = false;
+	private initializing = false;
 
 	/** Whether initialization has failed */
-	private failed: boolean = false;
+	private failed = false;
 
 	/** Optional timeout in milliseconds */
 	private timeout?: number;
@@ -180,7 +180,7 @@ class Initializable {
 	 * @param waitForIt Whether to wait for initialization to complete
 	 * @returns Promise that resolves to true if initialized, false otherwise
 	 */
-	public async isInitialized(waitForIt: boolean = false): Promise<boolean> {
+	public async isInitialized(waitForIt = false): Promise<boolean> {
 		// If already initialized, return immediately
 		if (this._initialized) {
 			return true;

@@ -41,7 +41,7 @@ class Lib {
 		return new Date(now.getTime() - milliseconds_ago);
 	}
 
-	public static GetDateTimestamp(date: string | Date, format: string = "DD/MM/YYYY HH:mm", isUTC: boolean = false): number {
+	public static GetDateTimestamp(date: string | Date, format = "DD/MM/YYYY HH:mm", isUTC = false): number {
 		if (typeof date === "string") {
 			const formatParts = format.split(/[-\/. :]/);
 			const dateParts = date.split(/[-\/. :]/);
@@ -49,8 +49,8 @@ class Lib {
 			let day: number | undefined;
 			let month: number | undefined;
 			let year: number | undefined;
-			let hours: number = 0;
-			let minutes: number = 0;
+			let hours = 0;
+			let minutes = 0;
 
 			formatParts.forEach((part, index) => {
 				switch (part) {
@@ -113,7 +113,7 @@ class Lib {
 		return `${formattedDate} ${formattedTime}`;
 	}
 
-	public static FormatUnixToDate(unix_time_stamp: number, in_milliseconds: boolean = false): Date {
+	public static FormatUnixToDate(unix_time_stamp: number, in_milliseconds = false): Date {
 		const date = new Date(unix_time_stamp * (in_milliseconds ? 1 : 1000));
 		return date;
 	}
@@ -153,7 +153,7 @@ class Lib {
 		}
 	}
 
-	public static DaysBetweenDates(startDate: Date | string | undefined, endDate: Date | string | undefined, format: string = "MM/dd/yyyy"): number {
+	public static DaysBetweenDates(startDate: Date | string | undefined, endDate: Date | string | undefined, format = "MM/dd/yyyy"): number {
 		if (startDate === null || startDate === undefined || endDate === null || endDate === undefined) {
 			throw new Error("Lib.DaysBetweenDates() Exception: Dates are required" + startDate + " " + endDate);
 		}
@@ -164,7 +164,7 @@ class Lib {
 		return Math.floor(daysPassed);
 	}
 
-	public static IsPastDate(date: Date | string, format: string = "MM/dd/yyyy HH:mm:ss", debug: boolean = false, currentDate?: Date | string): boolean {
+	public static IsPastDate(date: Date | string, format = "MM/dd/yyyy HH:mm:ss", debug = false, currentDate?: Date | string): boolean {
 		const truncateToSecond = (d: Date) => new Date(Math.floor(d.getTime() / 1000) * 1000);
 
 		const now = truncateToSecond(currentDate ? (typeof currentDate === "string" ? new Date(currentDate) : currentDate) : new Date());
@@ -178,7 +178,7 @@ class Lib {
 		return now.getTime() > check.getTime();
 	}
 
-	public static IsPastDateFrom(date: Date | string, from: Date | string, format: string = "MM/dd/yyyy"): boolean {
+	public static IsPastDateFrom(date: Date | string, from: Date | string, format = "MM/dd/yyyy"): boolean {
 		const now = this.FormatDate(from, format);
 		const check = this.FormatDate(date, format);
 		return new Date(now).getTime() > new Date(check).getTime();
@@ -189,10 +189,10 @@ class Lib {
 		return dateObj;
 	}
 
-	public static UUID(minLength: number = 36): string {
+	public static UUID(minLength = 36): string {
 		const template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
 		let uuid = template.replace(/[xy]/g, function (c) {
-			var r = (Math.random() * 16) | 0,
+			const r = (Math.random() * 16) | 0,
 				v = c === "x" ? r : (r & 0x3) | 0x8;
 			return v.toString(16);
 		});
@@ -233,7 +233,7 @@ class Lib {
 			empty_object = true;
 			return empty_object;
 		}
-		for (let k in value) {
+		for (const k in value) {
 			if (!this.IsNil(value[k]) && value[k] !== "") {
 				empty_object = false;
 			}
@@ -241,11 +241,11 @@ class Lib {
 		return empty_object;
 	}
 
-	public static IsNumpty(value: any, _objectsOnly: boolean = false): boolean {
+	public static IsNumpty(value: any, _objectsOnly = false): boolean {
 		return typeof value === "number" ? false : this.IsNil(value) || this.IsEmpty(value, _objectsOnly);
 	}
 
-	public static IsEmpty(value: any, _objectsOnly: boolean = false): boolean {
+	public static IsEmpty(value: any, _objectsOnly = false): boolean {
 		return (
 			(this.GetType(value) === "array" && value.length === 0 && !_objectsOnly) ||
 			(this.GetType(value) === "object" && this.EmptyObject(value)) ||
@@ -309,7 +309,7 @@ class Lib {
 		}
 	}
 
-	public static GetProjectRoot(startDir: string = __dirname, rootReference: string = "package.json"): string {
+	public static GetProjectRoot(startDir: string = __dirname, rootReference = "package.json"): string {
 		let currentDir = startDir;
 
 		while (!fs.existsSync(path.join(currentDir, rootReference))) {
@@ -366,7 +366,7 @@ class Lib {
 		await fs.promises.unlink(filePathFromRoot);
 	}
 
-	public static Timestamp(log: boolean = false) {
+	public static Timestamp(log = false) {
 		const currentTime = new Date().toLocaleTimeString();
 		if (log) console.log(`[${currentTime}]`);
 		return currentTime;
@@ -399,17 +399,17 @@ class Lib {
 		return output;
 	}
 
-	public static ToMB(bytes: number, as_KB: boolean = true, decimalPlaces: number = 2): string {
+	public static ToMB(bytes: number, as_KB = true, decimalPlaces = 2): string {
 		const kb = bytes / 1024;
 		return (as_KB ? kb : kb / 1024).toFixed(decimalPlaces);
 	}
 
-	public static ToGB(bytes: number, as_KB: boolean = true, decimalPlaces: number = 2): string {
+	public static ToGB(bytes: number, as_KB = true, decimalPlaces = 2): string {
 		const mb = this.ToMB(bytes, as_KB, decimalPlaces);
 		return (parseInt(mb) / 1024).toFixed(decimalPlaces);
 	}
 
-	public static async RetryHandler<T extends (...args: any[]) => any>(func: T, retries: number = 3, ...args: Parameters<T>): Promise<ReturnType<T>> {
+	public static async RetryHandler<T extends (...args: any[]) => any>(func: T, retries = 3, ...args: Parameters<T>): Promise<ReturnType<T>> {
 		let attempts = 0;
 		let toThrow;
 

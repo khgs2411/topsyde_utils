@@ -177,48 +177,23 @@ To generate the index files:
 bun run generate-indexes
 ```
 
-### Building the Package
-
-The build process is streamlined to perform several tasks in sequence:
-
-1. Clean the dist directory
-2. Generate index files
-3. Format code with Prettier (using cache for performance)
-4. Compile TypeScript
-
-To build the package:
-
-```bash
-bun run build
-```
-
 ### Development Scripts
 
 - `bun run clean` - Remove the dist directory
-- `bun run format` - Format TypeScript files with Prettier (using cache)
+- `bun run format` - Format all TypeScript files with Prettier (using cache)
+- `bun run format:generated` - Format only generated index files
 - `bun run lint` - Lint TypeScript files with ESLint (using cache)
 - `bun run test` - Run tests with Jest
 - `bun run generate-indexes` - Generate index files only
+- `bun run build:ts` - Compile TypeScript files
+- `bun run build:types` - Generate TypeScript declaration files
+- `bun run build:prepare` - Clean, generate indexes, and format generated files
+- `bun run build` - Complete build process (prepare, compile, generate types)
+- `bun run version:bump` - Bump version without creating git tags
 
 ### Publishing
 
-To publish a new version of the package, you can use either of the following methods:
-
-#### Manual Version Specification
-
-```bash
-./scripts/publish.sh <version> [tag]
-```
-
-For example:
-```bash
-./scripts/publish.sh 1.0.2
-./scripts/publish.sh 1.1.0-beta beta
-```
-
-#### Automated Version Increment
-
-For a more streamlined release process, use the release script which automatically increments the version number:
+To publish a new version of the package, use the optimized release script:
 
 ```bash
 # Using the script directly
@@ -240,16 +215,31 @@ bun run release minor beta # Increment minor version with 'beta' tag
 The release script will:
 1. Calculate and display the new version number
 2. Ask for confirmation before proceeding
-3. Update the version in package.json
-4. Generate index files
-5. Build the package
-6. Publish to npm with the specified tag (defaults to 'latest')
+3. Run linting to ensure code quality
+4. Update the version in package.json
+5. Build the package with all optimizations
+6. Publish the package with the specified tag
+7. Display the time taken for the release process
 
-#### Naming Conventions
+The script includes robust error handling and will exit on any failure, ensuring that the package is only published when all steps complete successfully.
 
-- Default exports from files directly in src are exported with their capitalized name (e.g., `app.ts` → `App`)
-- Default exports from files in subdirectories are exported with the directory name as a prefix (e.g., `router/route.ts` → `RouterRoute`)
-- Subdirectories are exported as modules with the capitalized directory name (e.g., `router/` → `Router`)
+### Testing the Release Process
+
+You can test the release process without actually publishing to npm using these commands:
+
+```bash
+# Test the release process without building or publishing
+bun run release:dry-run [patch|minor|major] [tag]
+
+# Test the full release process including building but without publishing to npm
+bun run release:test [patch|minor|major] [tag]
+```
+
+These test options are useful for:
+- Verifying that the release script works correctly
+- Testing the build process without affecting the npm registry
+- Checking what files will be included in the published package
+- Measuring the time taken for the release process
 
 ## License
 

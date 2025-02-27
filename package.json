@@ -10,14 +10,19 @@
   "scripts": {
     "clean": "rimraf dist",
     "format": "prettier --cache --write \"**/*.ts\"",
-    "lint": "eslint . --ext .ts --cache",
+    "format:generated": "prettier --cache --write \"src/index.ts\"",
     "generate-indexes": "./scripts/generate-indexes.sh",
-    "prebuild": "bun run clean && bun run generate-indexes && bun run format",
-    "build": "bun run tsc",
+    "build:ts": "tsc",
+    "build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
+    "build:prepare": "bun run clean && bun run generate-indexes && bun run format:generated",
+    "build": "bun run build:prepare && bun run build:ts && bun run build:types",
     "test": "bun test",
     "prepublishOnly": "bun run build",
     "prepare": "bun run build",
-    "release": "./scripts/release.sh"
+    "release": "./scripts/release.sh",
+    "release:dry-run": "./scripts/release.sh --dry-run",
+    "release:test": "./scripts/release.sh --test-publish",
+    "version:bump": "npm version --no-git-tag-version"
   },
   "keywords": [
     "typescript",
@@ -40,9 +45,6 @@
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.11",
     "@types/bun": "^1.2.4",
-    "@typescript-eslint/eslint-plugin": "^5.57.1",
-    "@typescript-eslint/parser": "^5.57.1",
-    "eslint": "^8.37.0",
     "jest": "^29.5.0",
     "prettier": "^2.8.7",
     "rimraf": "^4.4.1",
