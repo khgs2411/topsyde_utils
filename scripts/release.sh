@@ -10,26 +10,22 @@ NC='\033[0m' # No Color
 # Function to display usage information
 show_usage() {
   echo -e "${BLUE}Usage:${NC} $0 [patch|minor|major] [tag]"
-  echo -e "  patch: Increment the patch version (e.g., 1.0.0 -> 1.0.1)"
+  echo -e "  patch: Increment the patch version (e.g., 1.0.0 -> 1.0.1) - default"
   echo -e "  minor: Increment the minor version (e.g., 1.0.0 -> 1.1.0)"
   echo -e "  major: Increment the major version (e.g., 1.0.0 -> 2.0.0)"
   echo -e "  tag:   Optional tag for the release (default: latest)"
   echo
   echo -e "${BLUE}Examples:${NC}"
-  echo -e "  $0 patch         # Release a patch update with 'latest' tag"
-  echo -e "  $0 minor beta    # Release a minor update with 'beta' tag"
-  echo -e "  $0 major alpha   # Release a major update with 'alpha' tag"
+  echo -e "  $0              # Release a patch update with 'latest' tag"
+  echo -e "  $0 patch        # Same as above"
+  echo -e "  $0 minor beta   # Release a minor update with 'beta' tag"
+  echo -e "  $0 major alpha  # Release a major update with 'alpha' tag"
 }
 
-# Check if version type is provided
-if [ -z "$1" ]; then
-  echo -e "${RED}Error: No version type specified${NC}"
-  show_usage
-  exit 1
-fi
+# Set default version type to patch if not provided
+VERSION_TYPE=${1:-patch}
 
 # Validate version type
-VERSION_TYPE=$1
 if [[ ! "$VERSION_TYPE" =~ ^(patch|minor|major)$ ]]; then
   echo -e "${RED}Error: Invalid version type. Must be 'patch', 'minor', or 'major'${NC}"
   show_usage

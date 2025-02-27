@@ -221,15 +221,20 @@ For example:
 For a more streamlined release process, use the release script which automatically increments the version number:
 
 ```bash
+# Using the script directly
 ./scripts/release.sh [patch|minor|major] [tag]
+
+# Or using npm/bun scripts
+bun run release [patch|minor|major] [tag]
 ```
 
 Examples:
 ```bash
-./scripts/release.sh patch         # Increment patch version (e.g., 1.0.0 -> 1.0.1)
-./scripts/release.sh minor         # Increment minor version (e.g., 1.0.0 -> 1.1.0)
-./scripts/release.sh major         # Increment major version (e.g., 1.0.0 -> 2.0.0)
-./scripts/release.sh minor beta    # Increment minor version with 'beta' tag
+bun run release           # Increment patch version (default)
+bun run release patch     # Same as above
+bun run release minor     # Increment minor version (e.g., 1.0.0 -> 1.1.0)
+bun run release major     # Increment major version (e.g., 1.0.0 -> 2.0.0)
+bun run release minor beta # Increment minor version with 'beta' tag
 ```
 
 The release script will:
