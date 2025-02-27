@@ -29,13 +29,10 @@ fi
 
 # Update version in package.json
 echo -e "${YELLOW}Updating version in package.json...${NC}"
+# Note: Using npm for version command as bun doesn't have an equivalent
 npm version $VERSION --no-git-tag-version
 
-# Generate index files
-echo -e "${YELLOW}Generating index files...${NC}"
-./scripts/generate-indexes.sh
-
-# Build the package
+# Build the package (this will clean, generate indexes, format, and compile)
 echo -e "${YELLOW}Building the package...${NC}"
 bun run build
 

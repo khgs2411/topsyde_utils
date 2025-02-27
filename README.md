@@ -174,14 +174,71 @@ The script:
 To generate the index files:
 
 ```bash
-npm run generate-indexes
+bun run generate-indexes
 ```
 
-To build the package with the updated indexes:
+### Building the Package
+
+The build process is streamlined to perform several tasks in sequence:
+
+1. Clean the dist directory
+2. Generate index files
+3. Format code with Prettier (using cache for performance)
+4. Compile TypeScript
+
+To build the package:
 
 ```bash
-npm run build:indexes
+bun run build
 ```
+
+### Development Scripts
+
+- `bun run clean` - Remove the dist directory
+- `bun run format` - Format TypeScript files with Prettier (using cache)
+- `bun run lint` - Lint TypeScript files with ESLint (using cache)
+- `bun run test` - Run tests with Jest
+- `bun run generate-indexes` - Generate index files only
+
+### Publishing
+
+To publish a new version of the package, you can use either of the following methods:
+
+#### Manual Version Specification
+
+```bash
+./scripts/publish.sh <version> [tag]
+```
+
+For example:
+```bash
+./scripts/publish.sh 1.0.2
+./scripts/publish.sh 1.1.0-beta beta
+```
+
+#### Automated Version Increment
+
+For a more streamlined release process, use the release script which automatically increments the version number:
+
+```bash
+./scripts/release.sh [patch|minor|major] [tag]
+```
+
+Examples:
+```bash
+./scripts/release.sh patch         # Increment patch version (e.g., 1.0.0 -> 1.0.1)
+./scripts/release.sh minor         # Increment minor version (e.g., 1.0.0 -> 1.1.0)
+./scripts/release.sh major         # Increment major version (e.g., 1.0.0 -> 2.0.0)
+./scripts/release.sh minor beta    # Increment minor version with 'beta' tag
+```
+
+The release script will:
+1. Calculate and display the new version number
+2. Ask for confirmation before proceeding
+3. Update the version in package.json
+4. Generate index files
+5. Build the package
+6. Publish to npm with the specified tag (defaults to 'latest')
 
 #### Naming Conventions
 

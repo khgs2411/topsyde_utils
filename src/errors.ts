@@ -39,4 +39,3 @@ export enum WS_ERROR_CODE {
 	BAD_GATEWAY = 1014,
 	TLS_HANDSHAKE = 1015,
 }
-

@@ -55,8 +55,8 @@ for file in $FILES; do
   if [ "$filename" != "index" ]; then
     # Check if the file has a default export
     if grep -q "export default" "$file"; then
-      # Use the filename with first letter capitalized
-      capitalized=$(echo "$filename" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+      # Use the filename with first letter capitalized and replace dots with underscores
+      capitalized=$(echo "$filename" | awk '{print toupper(substr($0,1,1)) substr($0,2)}' | sed 's/\./_/g')
       
       # If the file is directly in src, use simple path
       if [ "$dir_path" = "." ]; then
@@ -64,7 +64,7 @@ for file in $FILES; do
       else
         # For nested files, create the import path with directory prefix to avoid naming conflicts
         # For example, router/router.ts becomes RouterRouter instead of Router
-        dir_capitalized=$(echo "$dir_path" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+        dir_capitalized=$(echo "$dir_path" | awk '{print toupper(substr($0,1,1)) substr($0,2)}' | sed 's/\./_/g')
         echo "export { default as $dir_capitalized$capitalized } from './$dir_path/$filename';" >> $INDEX_FILE
       fi
     fi
@@ -73,11 +73,54 @@ done
 
 echo "" >> $INDEX_FILE
 
-# Add specific re-exports for backward compatibility
+# Dynamically find and re-export constants and enums for backward compatibility
 echo "// Re-export specific items for backward compatibility" >> $INDEX_FILE
-echo "export { ERROR_CODE, HTTP_ERROR_CODE, WS_ERROR_CODE } from './errors';" >> $INDEX_FILE
-echo "export { E_IS, E_ENVIRONMENTS } from './enums';" >> $INDEX_FILE
-echo "export { RESPONSE_INIT, RESPONSE_METHOD_OPTIONS } from './app';" >> $INDEX_FILE
+
+# Find all constant exports (all uppercase with underscores)
+for file in $FILES; do
+  # Extract the relative path from src
+  rel_path=${file#src/}
+  # Extract the directory path if any
+  dir_path=$(dirname "$rel_path")
+  # Extract the filename without extension
+  filename=$(basename "$rel_path" .ts)
+  
+  # Skip the index file itself
+  if [ "$filename" != "index" ]; then
+    # Find all uppercase constant exports (matching pattern: export const CONSTANT_NAME)
+    constants=$(grep -o "export const [A-Z][A-Z0-9_]*" "$file" | sed 's/export const //')
+    
+    # Find all uppercase enum exports (matching pattern: export enum ENUM_NAME)
+    enums=$(grep -o "export enum [A-Z][A-Z0-9_]*" "$file" | sed 's/export enum //')
+    
+    # Combine constants and enums
+    exports=""
+    if [ ! -z "$constants" ]; then
+      exports="$constants"
+    fi
+    
+    if [ ! -z "$enums" ]; then
+      if [ ! -z "$exports" ]; then
+        exports="$exports\n$enums"
+      else
+        exports="$enums"
+      fi
+    fi
+    
+    if [ ! -z "$exports" ]; then
+      # Create a comma-separated list of exports
+      exports_list=$(echo -e "$exports" | tr '\n' ',' | sed 's/,$//')
+      
+      # If the file is directly in src, use simple path
+      if [ "$dir_path" = "." ]; then
+        echo "export { $exports_list } from './$filename';" >> $INDEX_FILE
+      else
+        # For nested files, create the import path
+        echo "export { $exports_list } from './$dir_path/$filename';" >> $INDEX_FILE
+      fi
+    fi
+  fi
+done
 
 # Now, create barrel exports for each subdirectory
 echo "" >> $INDEX_FILE
@@ -114,7 +157,8 @@ for subdir in $SUBDIRS; do
       
       # Check if the file has a default export and export it with a specific name
       if grep -q "export default" "$file"; then
-        capitalized=$(echo "$filename" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+        # Replace dots with underscores in the capitalized name
+        capitalized=$(echo "$filename" | awk '{print toupper(substr($0,1,1)) substr($0,2)}' | sed 's/\./_/g')
         echo "export { default as $capitalized } from './$filename';" >> $SUBDIR_INDEX
       fi
     done

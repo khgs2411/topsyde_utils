@@ -4,22 +4,22 @@
 // Export all modules
 
 // Export default classes
-export { default as App } from './app';
-export { default as Guards } from './guards';
-export { default as Initializable } from './initializable';
-export { default as Lib } from './lib';
-export { default as RouterRoute } from './router/route';
-export { default as RouterRouter } from './router/router';
-export { default as Singleton } from './singleton';
-export { default as Throwable } from './throwable';
+export { default as Application } from "./application";
+export { default as Guards } from "./guards";
+export { default as Initializable } from "./initializable";
+export { default as Lib } from "./lib";
+export { default as RouterRouter_internal } from "./router/router.internal";
+export { default as RouterRouter } from "./router/router";
+export { default as Singleton } from "./singleton";
+export { default as Throwable } from "./throwable";
 
 // Re-export specific items for backward compatibility
-export { ERROR_CODE, HTTP_ERROR_CODE, WS_ERROR_CODE } from './errors';
-export { E_IS, E_ENVIRONMENTS } from './enums';
-export { RESPONSE_INIT, RESPONSE_METHOD_OPTIONS } from './app';
+export { RESPONSE_INIT, RESPONSE_METHOD_OPTIONS } from "./application";
+export { DEFAULT_FALSE_RESPONSE, LOG_COLORS } from "./consts";
+export { E_IS, E_ENVIRONMENTS } from "./enums";
+export { ERROR_CODE, HTTP_ERROR_CODE, WS_ERROR_CODE } from "./errors";
 
 // Barrel exports for subdirectories
 // Create module for router
-import * as RouterModule from './router';
+import * as RouterModule from "./router";
 export { RouterModule as Router };
-

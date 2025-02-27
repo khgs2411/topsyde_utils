@@ -36,13 +36,13 @@ export default Initializable;
 export interface InitOptions {
 	/** Number of retry attempts (default: 25) */
 	retries?: number;
-	
+
 	/** Time in milliseconds between retry attempts (default: 200) */
 	retryInterval?: number;
-	
+
 	/** Whether to initialize automatically in constructor (default: false) */
 	autoInitialize?: boolean;
-	
+
 	/** Custom timeout in milliseconds (overrides retries * retryInterval) */
 	timeout?: number;
 }
@@ -50,24 +50,24 @@ export interface InitOptions {
 /**
  * Events emitted by Initializable instances
  */
-export type InitializableEvent = 'initializing' | 'initialized' | 'failed' | 'timeout';
+export type InitializableEvent = "initializing" | "initialized" | "failed" | "timeout";
 
 /**
  * Base class for objects that require asynchronous initialization
- * 
+ *
  * @example
  * class Database extends Initializable {
  *   private connection: any;
- *   
+ *
  *   constructor() {
  *     super({ retries: 10, retryInterval: 500 });
  *   }
- *   
+ *
  *   protected async doInitialize(): Promise<void> {
  *     this.connection = await connectToDatabase();
  *   }
  * }
- * 
+ *
  * // Usage
  * const db = new Database();
  * await db.initialize();
@@ -79,28 +79,28 @@ export type InitializableEvent = 'initializing' | 'initialized' | 'failed' | 'ti
 class Initializable {
 	/** Number of retry attempts */
 	private retries: number;
-	
+
 	/** Time in milliseconds between retry attempts */
 	private retryInterval: number;
-	
+
 	/** Whether initialization has completed successfully */
 	private _initialized: boolean = false;
-	
+
 	/** Whether initialization is in progress */
 	private initializing: boolean = false;
-	
+
 	/** Whether initialization has failed */
 	private failed: boolean = false;
-	
+
 	/** Optional timeout in milliseconds */
 	private timeout?: number;
-	
+
 	/** Event listeners */
 	private listeners: Map<InitializableEvent, Function[]> = new Map();
-	
+
 	/** Abort controller for cancellation */
 	private abortController: AbortController | null = null;
-	
+
 	/**
 	 * Creates a new Initializable instance
 	 * @param options Configuration options
@@ -109,13 +109,13 @@ class Initializable {
 		this.retries = options.retries ?? 25;
 		this.retryInterval = options.retryInterval ?? 200;
 		this.timeout = options.timeout;
-		
+
 		if (options.autoInitialize) {
 			// Schedule initialization on next tick to allow subclass construction to complete
 			setTimeout(() => this.initialize(), 0);
 		}
 	}
-	
+
 	/**
 	 * Initialize the object
 	 * @returns Promise that resolves when initialization is complete
@@ -126,47 +126,45 @@ class Initializable {
 		if (this._initialized) {
 			return;
 		}
-		
+
 		// If already initializing, wait for it to complete
 		if (this.initializing) {
 			return this.waitForInitialization();
 		}
-		
+
 		// Start initialization
 		this.initializing = true;
 		this.failed = false;
 		this.abortController = new AbortController();
-		
+
 		try {
 			// Emit initializing event
-			this.emit('initializing');
-			
+			this.emit("initializing");
+
 			// Call the implementation-specific initialization
 			await this.doInitialize();
-			
+
 			// Mark as initialized
 			this._initialized = true;
 			this.initializing = false;
-			
+
 			// Emit initialized event
-			this.emit('initialized');
+			this.emit("initialized");
 		} catch (error) {
 			// Mark as failed
 			this.failed = true;
 			this.initializing = false;
-			
+
 			// Emit failed event
-			this.emit('failed', error);
-			
+			this.emit("failed", error);
+
 			// Re-throw the error
-			throw error instanceof Error 
-				? error 
-				: new Error(`Initialization failed: ${String(error)}`);
+			throw error instanceof Error ? error : new Error(`Initialization failed: ${String(error)}`);
 		} finally {
 			this.abortController = null;
 		}
 	}
-	
+
 	/**
 	 * Implementation-specific initialization logic
 	 * Override this method in subclasses to provide custom initialization
@@ -176,7 +174,7 @@ class Initializable {
 		// Subclasses should override this method
 		this._initialized = true;
 	}
-	
+
 	/**
 	 * Check if the object is initialized
 	 * @param waitForIt Whether to wait for initialization to complete
@@ -187,12 +185,12 @@ class Initializable {
 		if (this._initialized) {
 			return true;
 		}
-		
+
 		// If not waiting or already failed, return current status
 		if (!waitForIt || this.failed) {
 			return this._initialized;
 		}
-		
+
 		// Wait for initialization to complete
 		try {
 			await this.waitForInitialization();
@@ -201,7 +199,7 @@ class Initializable {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Wait for initialization to complete
 	 * @returns Promise that resolves when initialization is complete
@@ -212,60 +210,60 @@ class Initializable {
 		if (this._initialized) {
 			return;
 		}
-		
+
 		// If not initializing, start initialization
 		if (!this.initializing) {
 			return this.initialize();
 		}
-		
+
 		const className = this.constructor.name;
-		const maxTime = this.timeout ?? (this.retries * this.retryInterval);
+		const maxTime = this.timeout ?? this.retries * this.retryInterval;
 		let retries = this.retries;
-		
+
 		// Create a promise that resolves when initialization completes
 		return new Promise<void>((resolve, reject) => {
 			// One-time event listeners for completion
 			const onInitialized = () => {
-				this.off('initialized', onInitialized);
-				this.off('failed', onFailed);
-				this.off('timeout', onTimeout);
+				this.off("initialized", onInitialized);
+				this.off("failed", onFailed);
+				this.off("timeout", onTimeout);
 				resolve();
 			};
-			
+
 			const onFailed = (error: Error) => {
-				this.off('initialized', onInitialized);
-				this.off('failed', onFailed);
-				this.off('timeout', onTimeout);
+				this.off("initialized", onInitialized);
+				this.off("failed", onFailed);
+				this.off("timeout", onTimeout);
 				reject(error);
 			};
-			
+
 			const onTimeout = () => {
-				this.off('initialized', onInitialized);
-				this.off('failed', onFailed);
-				this.off('timeout', onTimeout);
+				this.off("initialized", onInitialized);
+				this.off("failed", onFailed);
+				this.off("timeout", onTimeout);
 				reject(new Error(`Initialization of ${className} timed out after ${maxTime}ms`));
 			};
-			
+
 			// Register event listeners
-			this.on('initialized', onInitialized);
-			this.on('failed', onFailed);
-			this.on('timeout', onTimeout);
-			
+			this.on("initialized", onInitialized);
+			this.on("failed", onFailed);
+			this.on("timeout", onTimeout);
+
 			// Set up polling to check for timeout
 			const checkInterval = setInterval(() => {
 				retries--;
-				
+
 				if (this._initialized) {
 					clearInterval(checkInterval);
 					// Will be handled by event
 				} else if (retries <= 0) {
 					clearInterval(checkInterval);
-					this.emit('timeout');
+					this.emit("timeout");
 				}
 			}, this.retryInterval);
 		});
 	}
-	
+
 	/**
 	 * Cancel initialization if in progress
 	 */
@@ -274,10 +272,10 @@ class Initializable {
 			this.abortController.abort();
 			this.initializing = false;
 			this.failed = true;
-			this.emit('failed', new Error('Initialization cancelled'));
+			this.emit("failed", new Error("Initialization cancelled"));
 		}
 	}
-	
+
 	/**
 	 * Reset initialization state
 	 * Allows re-initialization after failure
@@ -286,12 +284,12 @@ class Initializable {
 		if (this.initializing) {
 			this.cancel();
 		}
-		
+
 		this._initialized = false;
 		this.initializing = false;
 		this.failed = false;
 	}
-	
+
 	/**
 	 * Register an event listener
 	 * @param event Event name
@@ -302,11 +300,11 @@ class Initializable {
 		if (!this.listeners.has(event)) {
 			this.listeners.set(event, []);
 		}
-		
+
 		this.listeners.get(event)!.push(callback);
 		return this;
 	}
-	
+
 	/**
 	 * Remove an event listener
 	 * @param event Event name
@@ -317,15 +315,15 @@ class Initializable {
 		if (this.listeners.has(event)) {
 			const callbacks = this.listeners.get(event)!;
 			const index = callbacks.indexOf(callback);
-			
+
 			if (index !== -1) {
 				callbacks.splice(index, 1);
 			}
 		}
-		
+
 		return this;
 	}
-	
+
 	/**
 	 * Emit an event
 	 * @param event Event name
@@ -334,7 +332,7 @@ class Initializable {
 	protected emit(event: InitializableEvent, ...args: any[]): void {
 		if (this.listeners.has(event)) {
 			const callbacks = [...this.listeners.get(event)!];
-			callbacks.forEach(callback => {
+			callbacks.forEach((callback) => {
 				try {
 					callback(...args);
 				} catch (error) {
@@ -343,7 +341,7 @@ class Initializable {
 			});
 		}
 	}
-	
+
 	/**
 	 * Get the abort signal for cancellation
 	 * Can be passed to fetch or other cancellable operations
@@ -351,21 +349,21 @@ class Initializable {
 	protected get abortSignal(): AbortSignal | undefined {
 		return this.abortController?.signal;
 	}
-	
+
 	/**
 	 * Check if initialization has been completed
 	 */
 	public get initialized(): boolean {
 		return this._initialized;
 	}
-	
+
 	/**
 	 * Check if initialization is in progress
 	 */
 	public get isInitializing(): boolean {
 		return this.initializing;
 	}
-	
+
 	/**
 	 * Check if initialization has failed
 	 */

@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A bundle of TypeScript utility classes and functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,16 +8,15 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun run tsc",
     "clean": "rimraf dist",
-    "prebuild": "bun run clean",
-    "prepublishOnly": "bun run build",
-    "test": "bun test",
-    "lint": "eslint . --ext .ts",
-    "format": "prettier --write \"**/*.ts\"",
+    "format": "prettier --cache --write \"**/*.ts\"",
+    "lint": "eslint . --ext .ts --cache",
     "generate-indexes": "./scripts/generate-indexes.sh",
-    "prebuild:indexes": "bun run generate-indexes",
-    "build:indexes": "bun run build"
+    "prebuild": "bun run clean && bun run generate-indexes && bun run format",
+    "build": "bun run tsc",
+    "test": "bun test",
+    "prepublishOnly": "bun run build",
+    "prepare": "bun run build"
   },
   "keywords": [
     "typescript",
