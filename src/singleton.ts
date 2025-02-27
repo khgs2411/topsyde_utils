@@ -1,76 +1,53 @@
 /**
- * Type representing a constructor function or class type
- */
-export type Constructor<T> = new (...args: any[]) => T;
-
-/**
- * Type for a singleton constructor with static methods
- */
-export type SingletonConstructor<T extends Singleton> = Constructor<T> & typeof Singleton;
-
-/**
- * Enhanced interface for singleton classes, providing type-safe instance management
- */
-export interface SingletonClass<T extends Singleton> {
-	new (...args: any[]): T;
-	GetInstance<U extends T>(...args: any[]): U;
-	HasInstance(): boolean;
-	ClearInstance(): boolean;
-	CreateFactory<U extends T>(...args: any[]): () => U;
-}
-
-/**
  * Base class for implementing the singleton pattern with type-safe instance management.
  * Supports constructors with any number of arguments.
  *
  * @example
  * // No constructor arguments
  * class DatabaseExample extends Singleton {
- *     private constructor() { super(); }
+ *     protected constructor() { super(); }
  *     public static connect() {
- *         return this.getInstance();
+ *         return DatabaseExample.GetInstance();
  *     }
  * }
  *
  * @example
  * // With constructor arguments
  * class EncryptionServiceExample extends Singleton {
- *     private constructor(key: string, algorithm: string) { super(); }
+ *     protected constructor(key: string, algorithm: string) { super(); }
  *     public static create(key: string, algorithm: string) {
- *         return this.getInstance(key, algorithm);
+ *         return EncryptionServiceExample.GetInstance(key, algorithm);
  *     }
  * }
  *
  * @example
  * // Lazy initialization with factory function
  * class ConfigService extends Singleton {
- *     private constructor(configPath: string) {
+ *     protected constructor(configPath: string) {
  *         super();
  *         // Heavy initialization work
  *     }
  *
  *     public static createLazy(configPath: string) {
- *         return this.createFactory(configPath);
+ *         return ConfigService.CreateFactory(configPath);
  *     }
  * }
  */
 abstract class Singleton {
 	// Using WeakMap allows garbage collection when no references remain to the class
-	private static readonly instances = new WeakMap<Constructor<any>, Singleton>();
+	private static readonly instances = new WeakMap<Function, Singleton>();
 
 	// Lock to prevent concurrent initialization in worker environments
-	private static readonly initializationLocks = new WeakMap<Constructor<any>, boolean>();
+	private static readonly initializationLocks = new WeakMap<Function, boolean>();
 
 	// Track active instances for debugging and testing
-	private static readonly activeInstances: Map<string, Constructor<any>> = new Map();
+	private static readonly activeInstances: Map<string, Function> = new Map();
 
 	/**
 	 * Protected constructor to prevent direct instantiation
 	 */
 	protected constructor() {
 		// Ensure the constructor is only called from getInstance
-		const constructorName = this.constructor.name;
-		const callerName = new Error().stack?.split("\n")[2]?.trim() || "";
 	}
 
 	/**
@@ -78,8 +55,8 @@ abstract class Singleton {
 	 * Creates a new instance if one doesn't exist
 	 * @throws Error if concurrent initialization is detected
 	 */
-	public static GetInstance<T extends Singleton>(this: Constructor<T>, ...args: any[]): T {
-		const classReference = this;
+	public static GetInstance<T extends Singleton>(...args: any[]): T {
+		const classReference = this as any;
 
 		// Fast path: return existing instance if available
 		if (Singleton.instances.has(classReference)) {
@@ -113,26 +90,26 @@ abstract class Singleton {
 	/**
 	 * Checks if an instance already exists
 	 */
-	public static HasInstance<T extends Singleton>(this: Constructor<T>): boolean {
-		return Singleton.instances.has(this);
+	protected static HasInstance(): boolean {
+		return Singleton.instances.has(this as any);
 	}
 
 	/**
 	 * Clears the instance (useful for testing or resource cleanup)
 	 * @returns true if an instance was cleared, false if no instance existed
 	 */
-	public static ClearInstance<T extends Singleton>(this: Constructor<T>): boolean {
-		const hadInstance = Singleton.instances.has(this);
-		Singleton.instances.delete(this);
-		Singleton.activeInstances.delete(this.name);
+	protected static ClearInstance(): boolean {
+		const hadInstance = Singleton.instances.has(this as any);
+		Singleton.instances.delete(this as any);
+		Singleton.activeInstances.delete((this as any).name);
 		return hadInstance;
 	}
 
 	/**
 	 * Creates a factory function for lazy initialization
 	 */
-	public static CreateFactory<T extends Singleton>(this: SingletonConstructor<T>, ...args: any[]): () => T {
-		const classReference = this;
+	protected static CreateFactory<T extends Singleton>(...args: any[]): () => T {
+		const classReference = this as any;
 		return () => classReference.GetInstance(...args);
 	}
 
