@@ -6,9 +6,11 @@ export type Constructor<T> = (abstract new (...args: any[]) => T) | (new (...arg
 /**
  * Interface for singleton classes, providing type-safe instance management
  */
-export type ISingletonConstructor<T extends Singleton = Singleton> = Constructor<T> & {
-	GetInstance<U extends T>(): U;
-	GetInstance<U extends T>(...args: ConstructorParameters<new (...args: any[]) => U>): U;
+export type SingletonConstructor<T extends Singleton = Singleton> = Constructor<T> & {
+	//support all overloaded methods
+	GetInstance<T extends Singleton>(this: Constructor<T>): T;
+	GetInstance<T extends Singleton>(this: Constructor<T>, ...args: ConstructorParameters<new (...args: any[]) => T>): T;
+	GetInstanceCount(): number;
 };
 
 /**
@@ -46,6 +48,10 @@ abstract class Singleton {
 			Singleton.instances.set(classReference, new (classReference as any)(...args));
 		}
 		return Singleton.instances.get(classReference) as T;
+	}
+
+	public static GetInstanceCount(): number {
+		return Singleton.instances.size;
 	}
 }
 
