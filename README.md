@@ -97,28 +97,33 @@ const db = Database.getInstance();
 db.connect();
 ```
 
-### Using Modules from Subdirectories
+### Importing from Subdirectories
 
-The package organizes related functionality into modules. For example, the router module:
+The package supports two ways to import modules:
+
+#### 1. Import from the root package
 
 ```typescript
-// Import the entire Router module
+// Import from the root package
 import { Router } from 'topsyde-utils';
 
-// Create a new router
-const router = new Router.Router();
-
-// Add a route
-router.addRoute(new Router.Route('/users', 'GET', async (req, res) => {
-  // Handle request
-}));
-
-// Use middleware
-Router.applyMiddleware(req, res, [
-  Router.commonMiddleware.logger,
-  Router.commonMiddleware.cors
-]);
+// Use directly without namespace
+Router.SetRoutes(routes);
 ```
+
+#### 2. Import directly from subdirectories
+
+```typescript
+// Import directly from a subdirectory
+import { Router, Routes } from 'topsyde-utils/router';
+import { Controller } from 'topsyde-utils/server';
+
+// Use the imported classes directly
+Router.SetRoutes(routes);
+const controller = new Controller();
+```
+
+This approach provides more flexibility and cleaner imports, especially when you only need specific components from a subdirectory.
 
 ## API Documentation
 

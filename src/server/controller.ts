@@ -19,8 +19,8 @@ export default abstract class Controller extends Initializable {
 	get: ControllerMap = new Map();
 	controllerMap: Map<string, ControllerMap> = new Map();
 
-	protected constructor(options: ControllerOptions) {
-		super(options);
+	constructor() {
+		super();
 		this.POST();
 		this.GET();
 		this.setControllerMap();

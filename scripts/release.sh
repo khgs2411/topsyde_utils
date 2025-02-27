@@ -12,7 +12,12 @@ error_exit() {
   echo -e "${RED}ERROR: $1${NC}" >&2
   # Restore original package.json if it was modified
   if [ -f "package.json.bak" ]; then
-    mv package.json.bak package.json
+    # Only restore the hooks, not the version
+    jq --slurpfile backup package.json.bak '.scripts.prepublishOnly = $backup[0].scripts.prepublishOnly | .scripts.prepare = $backup[0].scripts.prepare' package.json > package.json.tmp
+    if [ $? -eq 0 ]; then
+      mv package.json.tmp package.json
+    fi
+    rm package.json.bak
   fi
   exit 1
 }
@@ -149,9 +154,11 @@ else
   bun publish --tag $TAG --no-git-checks || error_exit "Publishing failed"
 fi
 
-# Restore original package.json
-echo -e "${YELLOW}Restoring package.json...${NC}"
-mv package.json.bak package.json || error_exit "Failed to restore package.json"
+# Restore only the npm hooks from the original package.json, keeping the new version
+echo -e "${YELLOW}Restoring npm hooks in package.json...${NC}"
+jq --slurpfile backup package.json.bak '.scripts.prepublishOnly = $backup[0].scripts.prepublishOnly | .scripts.prepare = $backup[0].scripts.prepare' package.json > package.json.tmp || error_exit "Failed to restore npm hooks"
+mv package.json.tmp package.json || error_exit "Failed to update package.json"
+rm package.json.bak
 
 # Calculate elapsed time
 END_TIME=$(date +%s)

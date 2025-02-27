@@ -68,10 +68,9 @@ for file in $FILES; do
       if [ "$dir_path" = "." ]; then
         echo "export { default as $capitalized } from './$filename';" >> $TMP_INDEX
       else
-        # For nested files, create the import path with directory prefix to avoid naming conflicts
-        # For example, router/router.ts becomes RouterRouter instead of Router
-        dir_capitalized=$(echo "$dir_path" | awk '{print toupper(substr($0,1,1)) substr($0,2)}' | sed 's/\./_/g')
-        echo "export { default as $dir_capitalized$capitalized } from './$dir_path/$filename';" >> $TMP_INDEX
+        # For nested files, export with the simple name (without directory prefix)
+        # This avoids the redundant naming like Router.Router
+        echo "export { default as $capitalized } from './$dir_path/$filename';" >> $TMP_INDEX
       fi
     fi
   fi
@@ -111,27 +110,25 @@ for file in $FILES; do
   fi
 done
 
-# Now, create barrel exports for each subdirectory
+# Now, create individual subdirectory index files for direct imports from subdirectories
 echo "" >> $TMP_INDEX
-echo "// Barrel exports for subdirectories" >> $TMP_INDEX
 
 # Find all subdirectories in src in a single command
 SUBDIRS=$(find src -type d -not -path "src" -not -path "src/__tests__*" | sort)
 
+# Create an array to store subdirectory names for package.json update
+SUBDIR_NAMES=()
+
 for subdir in $SUBDIRS; do
   # Get the directory name relative to src
   rel_dir=${subdir#src/}
-  # Capitalize the first letter of the directory name for the namespace
-  namespace=$(echo "$rel_dir" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
   
   # Check if there are any TypeScript files in this directory
   SUBDIR_FILES=$(find "$subdir" -maxdepth 1 -name "*.ts" -not -name "*.test.ts" -not -name "index.ts")
   
   if [ -n "$SUBDIR_FILES" ]; then
-    echo "// Create module for $rel_dir" >> $TMP_INDEX
-    echo "import * as ${namespace}Module from './$rel_dir';" >> $TMP_INDEX
-    echo "export { ${namespace}Module as $namespace };" >> $TMP_INDEX
-    echo "" >> $TMP_INDEX
+    # Add to the array for package.json update
+    SUBDIR_NAMES+=("$rel_dir")
     
     # Create a barrel file for this subdirectory
     SUBDIR_INDEX="${subdir}/index.ts"
@@ -163,5 +160,52 @@ done
 # Move the temporary file to the final location
 cat $TMP_INDEX >> $INDEX_FILE
 rm $TMP_INDEX
+
+# Update package.json with subdirectory exports
+if command -v jq &> /dev/null; then
+  echo "Updating package.json with subdirectory exports..."
+  
+  # Create a JSON object for exports directly using jq
+  EXPORTS_JSON="{\".\":{\"types\":\"./dist/index.d.ts\",\"default\":\"./dist/index.js\"}"
+  
+  # Add each subdirectory export
+  for dir in "${SUBDIR_NAMES[@]}"; do
+    EXPORTS_JSON="$EXPORTS_JSON,\"./$dir\":{\"types\":\"./dist/$dir/index.d.ts\",\"default\":\"./dist/$dir/index.js\"}"
+  done
+  
+  # Close the JSON object
+  EXPORTS_JSON="$EXPORTS_JSON}"
+  
+  # Create a JSON object for typesVersions directly using jq
+  TYPES_JSON="{\"*\":{"
+  
+  # Add each subdirectory type
+  for i in "${!SUBDIR_NAMES[@]}"; do
+    dir="${SUBDIR_NAMES[$i]}"
+    if [ $i -eq 0 ]; then
+      TYPES_JSON="$TYPES_JSON\"$dir\":[\"./dist/$dir/index.d.ts\"]"
+    else
+      TYPES_JSON="$TYPES_JSON,\"$dir\":[\"./dist/$dir/index.d.ts\"]"
+    fi
+  done
+  
+  # Close the JSON objects
+  TYPES_JSON="$TYPES_JSON}}"
+  
+  # Update package.json with jq
+  jq ".exports = $EXPORTS_JSON | .typesVersions = $TYPES_JSON" package.json > package.json.tmp
+  
+  # Check if jq command was successful
+  if [ $? -eq 0 ]; then
+    mv package.json.tmp package.json
+    echo "package.json updated with subdirectory exports"
+  else
+    echo "Failed to update package.json"
+    rm package.json.tmp
+  fi
+else
+  echo "jq is not installed. Skipping package.json update."
+  echo "Please install jq to enable automatic package.json updates."
+fi
 
 echo "Index file generated successfully at $INDEX_FILE" 
