@@ -1,4 +1,4 @@
-import type { NonNullableType } from "../../interfaces/types";
+import type { NonNullableType } from "./types";
 import Lib from "./lib";
 
 class Guards {
