@@ -41,7 +41,7 @@ abstract class Singleton {
 	protected constructor() {}
 
 	public static GetInstance<T extends Singleton>(this: Constructor<T>): T;
-	public static GetInstance<T extends Singleton>(this: Constructor<T>, ...args: ConstructorParameters<new (...args: any[]) => T>): T;
+	public static GetInstance<T extends Singleton, U extends ConstructorParameters<new (...args: any[]) => T>>(this: Constructor<T>, ...args: U): T;
 	public static GetInstance<T extends Singleton>(this: Constructor<T>, ...args: any[]): T {
 		const classReference = this;
 		if (!Singleton.instances.has(classReference)) {
