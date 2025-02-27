@@ -1,0 +1,36 @@
+# Source
+src/
+
+# Tests
+__tests__/
+*.test.ts
+*.spec.ts
+coverage/
+
+# Config files
+.prettierrc
+.prettierignore
+.eslintrc
+tsconfig.json
+jest.config.js
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+node_modules/
+.env
+.env.* 

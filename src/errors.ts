@@ -1,6 +1,4 @@
-import Guards from "./guards";
-import Lib from "./lib";
-
+// Error code enums
 export enum ERROR_CODE {
 	NO_REQUEST = -1,
 	UNKNOWN_ERROR = 0,
@@ -42,26 +40,3 @@ export enum WS_ERROR_CODE {
 	TLS_HANDSHAKE = 1015,
 }
 
-
-/**
- * @description Custom error class to throw errors without prompting Sentry
- */
-class Throwable extends Error {
-	constructor(message: unknown, log_error: boolean = true) {
-		const _message = Guards.IsString(message) ? message : JSON.stringify(message);
-		super(_message);
-		this.name = "Throwable";
-		if (log_error) Lib.$Log("Throwable: ", message);
-
-		// Capture stack trace if available
-		if (message instanceof Error) {
-			this.stack = message.stack;
-			this.cause = message.cause;
-		}
-	}
-
-	static IsThrowable(e: any): e is Throwable {
-		return e instanceof Throwable;
-	}
-}
-export default Throwable;

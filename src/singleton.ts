@@ -14,10 +14,10 @@ export type SingletonConstructor<T extends Singleton> = Constructor<T> &
  */
 export interface SingletonClass<T extends Singleton> {
   new (...args: any[]): T;
-  getInstance<U extends T>(...args: any[]): U;
-  hasInstance(): boolean;
-  clearInstance(): boolean;
-  createFactory<U extends T>(...args: any[]): () => U;
+  GetInstance<U extends T>(...args: any[]): U;
+  HasInstance(): boolean;
+  ClearInstance(): boolean;
+  CreateFactory<U extends T>(...args: any[]): () => U;
 }
 
 /**
@@ -92,7 +92,7 @@ abstract class Singleton {
    * Creates a new instance if one doesn't exist
    * @throws Error if concurrent initialization is detected
    */
-  public static getInstance<T extends Singleton>(
+  public static GetInstance<T extends Singleton>(
     this: Constructor<T>,
     ...args: any[]
   ): T {
@@ -136,7 +136,7 @@ abstract class Singleton {
   /**
    * Checks if an instance already exists
    */
-  public static hasInstance<T extends Singleton>(
+  public static HasInstance<T extends Singleton>(
     this: Constructor<T>
   ): boolean {
     return Singleton.instances.has(this);
@@ -146,7 +146,7 @@ abstract class Singleton {
    * Clears the instance (useful for testing or resource cleanup)
    * @returns true if an instance was cleared, false if no instance existed
    */
-  public static clearInstance<T extends Singleton>(
+  public static ClearInstance<T extends Singleton>(
     this: Constructor<T>
   ): boolean {
     const hadInstance = Singleton.instances.has(this);
@@ -158,20 +158,20 @@ abstract class Singleton {
   /**
    * Creates a factory function for lazy initialization
    */
-  public static createFactory<T extends Singleton>(
+  public static CreateFactory<T extends Singleton>(
     this: SingletonConstructor<T>,
     ...args: any[]
   ): () => T {
     const classReference = this;
-    return () => classReference.getInstance(...args);
+    return () => classReference.GetInstance(...args);
   }
 
   /**
    * Clears all singleton instances
    * Primarily used for testing or application shutdown
    */
-  public static clearAllInstances(): void {
-    const instanceCount = Singleton.getInstanceCount();
+  public static ClearAllInstances(): void {
+    const instanceCount = Singleton.GetInstanceCount();
 
     // Clear the WeakMap by removing all references
     Singleton.activeInstances.forEach((constructor) => {
@@ -188,7 +188,7 @@ abstract class Singleton {
    * Gets the count of active singleton instances
    * Useful for debugging and testing
    */
-  public static getInstanceCount(): number {
+  public static GetInstanceCount(): number {
     return Singleton.activeInstances.size;
   }
 
@@ -196,7 +196,7 @@ abstract class Singleton {
    * Gets the list of active singleton class names
    * Useful for debugging and testing
    */
-  public static getActiveInstanceNames(): string[] {
+  public static GetActiveInstanceNames(): string[] {
     return Array.from(Singleton.activeInstances.keys());
   }
 }

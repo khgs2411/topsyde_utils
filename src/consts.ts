@@ -1,20 +1,3 @@
-
-export const RESPONSE_INIT: ResponseInit = {
-	status: 200,
-	headers: {
-		"Content-Type": "application/json",
-		"Access-Control-Allow-Origin": "http://localhost:8000",
-		"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-		"Access-Control-Allow-Headers": "Content-Type, Authorization",
-		"Access-Control-Allow-Credentials": "true",
-	},
-};
-
-export const RESPONSE_METHOD_OPTIONS = {
-	name: "Access-Control-Max-Age",
-	value: "86400",
-};
-
 export const DEFAULT_FALSE_RESPONSE = "Something went wrong. Please try again later.";
 
 export const LOG_COLORS = {
@@ -46,9 +29,4 @@ export const LOG_COLORS = {
 		cyan: "\x1b[46m",
 		white: "\x1b[47m",
 	},
-};
-
-export const ENVIRONMENTS = {
-	DEV: "development",
-	PROD: "production",
 };
