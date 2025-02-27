@@ -1,21 +1,24 @@
 /**
  * Type representing a constructor function or class type
  */
-export type Constructor<T> =
-  | (abstract new (...args: any[]) => T)
-  | (new (...args: any[]) => T)
-  | ({ prototype: T } & Function);
+export type Constructor<T> = new (...args: any[]) => T;
+
+/**
+ * Type for a singleton constructor with static methods
+ */
+export type SingletonConstructor<T extends Singleton> = Constructor<T> &
+  typeof Singleton;
 
 /**
  * Enhanced interface for singleton classes, providing type-safe instance management
  */
-export type ISingletonConstructor<T extends Singleton = Singleton> =
-  Constructor<T> & {
-    getInstance<U extends T>(): U;
-    getInstance<U extends T>(...args: any[]): U;
-    hasInstance(): boolean;
-    clearInstance(): void;
-  };
+export interface SingletonClass<T extends Singleton> {
+  new (...args: any[]): T;
+  getInstance<U extends T>(...args: any[]): U;
+  hasInstance(): boolean;
+  clearInstance(): boolean;
+  createFactory<U extends T>(...args: any[]): () => U;
+}
 
 /**
  * Base class for implementing the singleton pattern with type-safe instance management.
@@ -48,25 +51,46 @@ export type ISingletonConstructor<T extends Singleton = Singleton> =
  *     }
  *
  *     public static createLazy(configPath: string) {
- *         return () => this.getInstance(configPath);
+ *         return this.createFactory(configPath);
  *     }
  * }
  */
 abstract class Singleton {
   // Using WeakMap allows garbage collection when no references remain to the class
-  private static readonly instances = new WeakMap<Function, Singleton>();
+  private static readonly instances = new WeakMap<
+    Constructor<any>,
+    Singleton
+  >();
 
   // Lock to prevent concurrent initialization in worker environments
   private static readonly initializationLocks = new WeakMap<
-    Function,
+    Constructor<any>,
     boolean
   >();
 
-  protected constructor() {}
+  // Track active instances for debugging and testing
+  private static readonly activeInstances: Map<string, Constructor<any>> =
+    new Map();
+
+  /**
+   * Protected constructor to prevent direct instantiation
+   */
+  protected constructor() {
+    // Ensure the constructor is only called from getInstance
+    const constructorName = this.constructor.name;
+    const callerName = new Error().stack?.split("\n")[2]?.trim() || "";
+
+    if (!callerName.includes("getInstance")) {
+      console.warn(
+        `${constructorName} is a singleton and should be accessed via ${constructorName}.getInstance()`
+      );
+    }
+  }
 
   /**
    * Gets the singleton instance of the class
    * Creates a new instance if one doesn't exist
+   * @throws Error if concurrent initialization is detected
    */
   public static getInstance<T extends Singleton>(
     this: Constructor<T>,
@@ -74,22 +98,36 @@ abstract class Singleton {
   ): T {
     const classReference = this;
 
+    // Fast path: return existing instance if available
+    if (Singleton.instances.has(classReference)) {
+      return Singleton.instances.get(classReference) as T;
+    }
+
     // Protection for worker thread environments
     if (Singleton.initializationLocks.get(classReference)) {
-      throw new Error("Concurrent initialization of singleton detected");
+      throw new Error(
+        `Concurrent initialization of ${classReference.name} singleton detected`
+      );
     }
 
     try {
       Singleton.initializationLocks.set(classReference, true);
 
+      // Double-check pattern to handle race conditions
       if (!Singleton.instances.has(classReference)) {
-        Singleton.instances.set(
-          classReference,
-          new (classReference as any)(...args)
-        );
+        const instance = new classReference(...args);
+        Singleton.instances.set(classReference, instance);
+        // Track the instance for debugging
+        Singleton.activeInstances.set(classReference.name, classReference);
       }
 
       return Singleton.instances.get(classReference) as T;
+    } catch (error) {
+      throw new Error(
+        `Failed to initialize ${classReference.name} singleton: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     } finally {
       Singleton.initializationLocks.delete(classReference);
     }
@@ -106,20 +144,60 @@ abstract class Singleton {
 
   /**
    * Clears the instance (useful for testing or resource cleanup)
+   * @returns true if an instance was cleared, false if no instance existed
    */
-  public static clearInstance<T extends Singleton>(this: Constructor<T>): void {
+  public static clearInstance<T extends Singleton>(
+    this: Constructor<T>
+  ): boolean {
+    const hadInstance = Singleton.instances.has(this);
     Singleton.instances.delete(this);
+    Singleton.activeInstances.delete(this.name);
+    return hadInstance;
   }
 
   /**
    * Creates a factory function for lazy initialization
    */
   public static createFactory<T extends Singleton>(
-    this: Constructor<T>,
+    this: SingletonConstructor<T>,
     ...args: any[]
   ): () => T {
     const classReference = this;
-    return () => Singleton.getInstance.apply(classReference, args);
+    return () => classReference.getInstance(...args);
+  }
+
+  /**
+   * Clears all singleton instances
+   * Primarily used for testing or application shutdown
+   */
+  public static clearAllInstances(): void {
+    const instanceCount = Singleton.getInstanceCount();
+
+    // Clear the WeakMap by removing all references
+    Singleton.activeInstances.forEach((constructor) => {
+      Singleton.instances.delete(constructor);
+    });
+
+    // Clear the tracking map
+    Singleton.activeInstances.clear();
+
+    console.log(`Cleared ${instanceCount} singleton instances`);
+  }
+
+  /**
+   * Gets the count of active singleton instances
+   * Useful for debugging and testing
+   */
+  public static getInstanceCount(): number {
+    return Singleton.activeInstances.size;
+  }
+
+  /**
+   * Gets the list of active singleton class names
+   * Useful for debugging and testing
+   */
+  public static getActiveInstanceNames(): string[] {
+    return Array.from(Singleton.activeInstances.keys());
   }
 }
 
