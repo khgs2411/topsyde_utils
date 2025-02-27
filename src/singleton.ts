@@ -8,12 +8,12 @@ export type Constructor<T> = (abstract new (...args: any[]) => T) | (new (...arg
  */
 export type ISingletonConstructor<T extends Singleton = Singleton> = Constructor<T> & {
 	GetInstance<U extends T>(): U;
-	GetInstance<U extends T>(arg: ConstructorParameters<new (...args: any[]) => U>[0]): U;
+	GetInstance<U extends T>(...args: ConstructorParameters<new (...args: any[]) => U>): U;
 };
 
 /**
  * Base class for implementing the singleton pattern with type-safe instance management.
- * Supports both no-arg constructors and constructors with a single argument.
+ * Supports constructors with any number of arguments.
  *
  * @example
  * // No constructor arguments
@@ -25,11 +25,11 @@ export type ISingletonConstructor<T extends Singleton = Singleton> = Constructor
  * }
  *
  * @example
- * // With constructor argument
+ * // With constructor arguments
  * class EncryptionServiceExample extends Singleton {
- *     private constructor(key: string) { super(); }
- *     public static Create(key: string) {
- *         return this.GetInstance(key);
+ *     private constructor(key: string, algorithm: string) { super(); }
+ *     public static Create(key: string, algorithm: string) {
+ *         return this.GetInstance(key, algorithm);
  *     }
  * }
  */
@@ -39,7 +39,7 @@ abstract class Singleton {
 	protected constructor() {}
 
 	public static GetInstance<T extends Singleton>(this: Constructor<T>): T;
-	public static GetInstance<T extends Singleton>(this: Constructor<T>, arg: ConstructorParameters<new (...args: any[]) => T>[0]): T;
+	public static GetInstance<T extends Singleton>(this: Constructor<T>, ...args: ConstructorParameters<new (...args: any[]) => T>): T;
 	public static GetInstance<T extends Singleton>(this: Constructor<T>, ...args: any[]): T {
 		const classReference = this;
 		if (!Singleton.instances.has(classReference)) {
