@@ -7,7 +7,7 @@ export default abstract class Singleton {
 		this.timestamp = new Date();
 	}
 
-	public static GetInstance<T extends Singleton>(...args: any[]): T {
+	public static GetInstance<T extends Singleton, Args extends any[] = ConstructorParameters<new (...args: any[]) => T>>(...args: Args): T {
 		const className = this.name;
 		const key = className.includes("Websocket") ? "Websocket" : className;
 		

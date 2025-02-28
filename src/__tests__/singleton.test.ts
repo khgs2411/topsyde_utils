@@ -215,7 +215,7 @@ describe("Singleton", () => {
 			}
 		}
 
-		const instance = ClassWithConstructorParams.GetInstance<ClassWithConstructorParams>("test", 1);
+		const instance = ClassWithConstructorParams.GetInstance<ClassWithConstructorParams, [string, number]>("test", 1);
 		expect(instance.config).toEqual({ name: "test", id: 1 });
 	});
 });
