@@ -1,16 +1,16 @@
 import Websocket from "./Websocket";
 import type { WebsocketStructuredMessage, I_WebsocketClient } from "./websocket.types";
-import WebsocketClient from "./WebsocketClient";
+import Client from "./Client";
 
 export default class Channel {
 	private createdAt?: Date = new Date();
 	private id: string;
 	private name: string;
 	private limit: number;
-	private members: Map<string, WebsocketClient>;
+	private members: Map<string, Client>;
 	private metadata: Record<string, string>;
 
-	constructor(id: string, name: string, limit?: number, members?: Map<string, WebsocketClient>, metadata?: Record<string, string>) {
+	constructor(id: string, name: string, limit?: number, members?: Map<string, Client>, metadata?: Record<string, string>) {
 		this.id = id;
 		this.name = name;
 		this.limit = limit ?? 5;
@@ -18,7 +18,7 @@ export default class Channel {
 		this.metadata = metadata ?? {};
 	}
 
-	public addMember(client: WebsocketClient) {
+	public addMember(client: Client) {
 		if (this.canAddMember()) {
 			this.members.set(client.getId(), client);
 			client.joinChannel(this);
@@ -33,7 +33,7 @@ export default class Channel {
 		});
 	}
 
-	public removeMember(client: WebsocketClient) {
+	public removeMember(client: Client) {
 		this.members.delete(client.getId());
 		client.leaveChannel(this);
 	}
@@ -44,7 +44,7 @@ export default class Channel {
 
 	public hasMember(client: I_WebsocketClient | string) {}
 	public getMember(client: I_WebsocketClient | string) {}
-	public getMembers(): WebsocketClient[] {
+	public getMembers(): Client[] {
 		return Array.from(this.members.values());
 	}
 	public getMetadata() {

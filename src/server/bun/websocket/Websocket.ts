@@ -6,7 +6,7 @@ lets start simple, I want an abstraction interface for the handlers, suggest a s
 
 import { Server, ServerWebSocket, WebSocketHandler } from "bun";
 import Channel from "./Channel";
-import WebsocketClient from "./WebsocketClient";
+import Client from "./Client";
 import Singleton from "../../../singleton";
 import type { WebsocketChannel, WebsocketClientData, WebsocketMessage } from "./websocket.types";
 
@@ -45,7 +45,7 @@ export default class Websocket extends Singleton {
 	private clientConnected = (ws: ServerWebSocket<WebsocketClientData>) => {
 		console.log("WebSocket connection opened");
 		const global = this.channels.get("global");
-		const client = new WebsocketClient(ws.data.id, ws);
+		const client = new Client(ws.data.id, ws);
 		if (global) global.addMember(client);
 	};
 

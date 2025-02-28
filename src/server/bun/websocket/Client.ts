@@ -2,7 +2,7 @@ import { ServerWebSocket } from "bun";
 import Channel from "./Channel";
 import type { I_WebsocketClient, WebsocketClientData, WebsocketChannel } from "./websocket.types";
 
-export default class WebsocketClient implements I_WebsocketClient {
+export default class Client implements I_WebsocketClient {
 	public id: string;
 	public ws: ServerWebSocket<WebsocketClientData>;
 	private channels: WebsocketChannel = new Map();
