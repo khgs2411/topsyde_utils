@@ -7,23 +7,21 @@ export default abstract class Singleton {
 		this.timestamp = new Date();
 	}
 
-	public static GetInstance<T extends Singleton, Args extends any[] = ConstructorParameters<new (...args: any[]) => T>>(...args: Args): T {
+	public static GetInstance<T extends Singleton>(...args: any[]): T {
 		const className = this.name;
-		const key = className.includes("Websocket") ? "Websocket" : className;
-		
-		if (!Singleton._instances.has(key)) {
+
+		if (!Singleton._instances.has(className)) {
 			const instance = Reflect.construct(this, args) as T;
-			Singleton._instances.set(key, instance);
+			Singleton._instances.set(className, instance);
 		}
-		
-		return Singleton._instances.get(key) as T;
+
+		return Singleton._instances.get(className) as T;
 	}
-	
+
 	public static ResetInstances(): void {
 		Singleton._instances.clear();
 	}
-	
-	
+
 	public static ResetInstance(className: string): void {
 		Singleton._instances.delete(className);
 	}

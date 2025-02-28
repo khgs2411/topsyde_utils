@@ -1,4 +1,4 @@
-import { ServerWebSocket } from "bun";
+import { ServerWebSocket, WebSocketHandler } from "bun";
 import Channel from "./Channel";
 
 export interface I_WebsocketEntity {
@@ -26,3 +26,7 @@ export type WebsocketStructuredMessage = {
 };
 
 export type WebsocketChannel<T extends Channel = Channel> = Map<string, T>;
+
+export interface I_WebsocketInterface {
+	setup: () => Partial<WebSocketHandler<WebsocketClientData>>;
+}

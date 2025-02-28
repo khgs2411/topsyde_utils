@@ -15,13 +15,13 @@ export default class Client implements I_WebsocketClient {
 	public joinChannel(channel: Channel) {
 		this.channels.set(channel.getId(), channel);
 		this.subscribe(channel.getId());
-		this.send({ type: "channel.join", content: { channelId: channel.getId() } });
+		this.send({ type: "client.channel.added", content: { channelId: channel.getId() } });
 	}
 
 	public leaveChannel(channel: Channel) {
 		this.channels.delete(channel.getId());
 		this.unsubscribe(channel.getId());
-		this.send({ type: "channel.leave", content: { channelId: channel.getId() } });
+		this.send({ type: "client.channel.removed", content: { channelId: channel.getId() } });
 	}
 
 	public getChannels() {

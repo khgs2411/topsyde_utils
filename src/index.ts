@@ -14,6 +14,7 @@ export * from "./server/controller";
 export * from "./server/bun/router/routes";
 export * from "./server/bun/router/router";
 export * from "./server/bun/router/router.internal";
+export * from "./server/bun/websocket/websocket.guards";
 export * from "./server/bun/websocket/Client";
 export * from "./server/bun/websocket/Websocket";
 export * from "./server/bun/websocket/websocket.types";
@@ -53,4 +54,5 @@ export {
 	WebsocketMessage,
 	WebsocketStructuredMessage,
 	WebsocketChannel,
+	I_WebsocketInterface,
 } from "./server/bun/websocket/websocket.types";

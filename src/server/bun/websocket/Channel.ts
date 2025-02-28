@@ -17,6 +17,7 @@ export default class Channel {
 		this.limit = limit ?? 5;
 		this.members = members ?? new Map();
 		this.metadata = metadata ?? {};
+		this.broadcast({ type: "channel.created", content: { channelId: this.id } });
 	}
 
 	public addMember(entity: I_WebsocketEntity) {
@@ -24,14 +25,6 @@ export default class Channel {
 		const client = new Client(entity.id, entity.ws);
 		this.members.set(client.getId(), client);
 		client.joinChannel(this);
-
-		this.broadcast({
-			type: "channel.member.added",
-			content: {
-				channelId: this.id,
-				clientId: client.getId(),
-			},
-		});
 	}
 
 	public removeMember(entity: I_WebsocketEntity) {
@@ -42,13 +35,19 @@ export default class Channel {
 		this.members.delete(entity.id);
 	}
 
-	public broadcast(message: WebsocketStructuredMessage, exclude?: string[] | I_WebsocketClient[]) {
+	public broadcast(message: WebsocketStructuredMessage, exclude?: string[] | I_WebsocketEntity[]) {
 		Websocket.Broadcast(this.id, message);
 	}
 
-	public hasMember(client: I_WebsocketClient | string) {}
+	public hasMember(client: I_WebsocketEntity | string) {
+		if (typeof client === "string") return this.members.has(client);
+		return this.members.has(client.id);
+	}
 
-	public getMember(client: I_WebsocketClient | string) {}
+	public getMember(client: I_WebsocketEntity | string) {
+		if (typeof client === "string") return this.members.get(client);
+		return this.members.get(client.id);
+	}
 
 	public getMembers(): I_WebsocketClient[] {
 		return Array.from(this.members.values());

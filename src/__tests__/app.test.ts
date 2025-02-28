@@ -1,48 +1,29 @@
 import * as app from "../server/bun/websocket";
 import { WebsocketStructuredMessage } from "../server/bun/websocket/websocket.types";
 import Singleton from "../singleton";
-
-// Create a derived class that extends the Websocket class
-class _Websocket extends app.Websocket {}
+import Channel from "../server/bun/websocket/Channel";
 
 describe("Websocket Tests", () => {
-	let ws: app.Websocket;
+	const _Websocket = app.Websocket;
 	let server: any;
 
 	beforeEach(() => {
-		// Get a fresh instance for each test
-		ws = _Websocket.GetInstance();
+		// Reset all singleton instances before each test
+		Singleton.ResetInstances();
 
-		// Create a server with the websocket handler
-		server = Bun.serve({
-			port: 3001, // Use a different port for testing
-			fetch(req: Request, server: any) {
-				// Simple fetch handler
-				if (server.upgrade(req, { data: { id: "test-client" } })) {
-					return new Response("Upgraded to WebSocket");
-				}
-				return new Response("Hello from test server");
-			},
-			websocket: ws.setup(),
-		});
+		// Create a mock server
+		server = {
+			publish: (channel: string, message: string) => {},
+		};
 
-		// Set the server in the WebSocket instance
-		ws.set(server);
-	});
-
-	afterEach(() => {
-		// Clean up after each test
-		if (server) {
-			server.stop();
-		}
-
-		// Reset all singleton instances for the next test
+		// Set up the Websocket instance with the server
+		const wsInstance = _Websocket.GetInstance<app.Websocket>();
+		wsInstance.set(server);
 	});
 
 	it("should set up the websocket server correctly", () => {
-		// Test that the server is set correctly
-		expect(ws).toBeDefined();
-		expect(_Websocket.Server()).toBeDefined();
+		const wsInstance = _Websocket.GetInstance<app.Websocket>();
+		expect(_Websocket.Server()).toBe(server);
 	});
 
 	it("should broadcast messages to channels", () => {
@@ -59,7 +40,7 @@ describe("Websocket Tests", () => {
 
 	it("should handle the case when server is not set", () => {
 		// Create a new instance with Singleton.ResetInstance and don't set a server
-		const newWs = _Websocket.GetInstance<_Websocket>();
+		const newWs = _Websocket.GetInstance<app.Websocket>();
 		(newWs.server as any) = null;
 		// This should log a warning but not throw an error
 		const message: WebsocketStructuredMessage = {
@@ -112,13 +93,17 @@ describe("Websocket Tests", () => {
 		class AnotherWebsocket extends app.Websocket {}
 
 		// Get instances of both classes
-		const wsInstance1 = _Websocket.GetInstance<_Websocket>();
+		const wsInstance1 = _Websocket.GetInstance<app.Websocket>();
 		const wsInstance2 = AnotherWebsocket.GetInstance<AnotherWebsocket>();
 
-		// Verify they are the same instance since they share the same base class
-		expect(wsInstance1).toBe(wsInstance2);
+		// Each class should have its own singleton instance
+		expect(wsInstance1).not.toBe(wsInstance2);
 
-		// Both classes should use the same server
+		// Set up server for both instances
+		wsInstance1.set(server);
+		wsInstance2.set(server);
+
+		// Both classes should share the same server instance
 		expect(_Websocket.Server()).toBe(server);
 		expect(AnotherWebsocket.Server()).toBe(server);
 	});
@@ -142,10 +127,11 @@ describe("Websocket Tests", () => {
 			}
 		}
 
-		// Get an instance of the custom class
+		// Get an instance of the custom class and set up its server
 		const customWs = CustomWebsocket.GetInstance<CustomWebsocket>();
+		customWs.set(server);
 
-		// Both classes should use the same server
+		// Both classes should share the same server instance
 		expect(_Websocket.Server()).toBe(server);
 		expect(CustomWebsocket.Server()).toBe(server);
 
@@ -186,16 +172,15 @@ describe("Websocket Tests", () => {
 
 			constructor() {
 				this.websocket = moduleB.Websocket.GetInstance();
+				// Set up the server for this instance
+				this.websocket.set(server);
 			}
 
 			setup() {
-				// No need to create another server, we'll use the existing one
 				return server;
 			}
 
 			broadcast(message: WebsocketStructuredMessage) {
-				// This is where the issue might occur
-				// We're calling a static method on the derived class
 				moduleB.Websocket.Broadcast("global", message);
 			}
 		}

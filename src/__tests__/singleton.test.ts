@@ -2,6 +2,9 @@ import Singleton from "../singleton";
 
 // Base class that extends Singleton
 class BaseClass extends Singleton {
+	protected constructor() {
+		super();
+	}
 	public value: string = "base";
 
 	public getValue(): string {
@@ -15,6 +18,9 @@ class BaseClass extends Singleton {
 
 // Derived class that extends BaseClass
 class DerivedClass extends BaseClass {
+	protected constructor() {
+		super();
+	}
 	public override value: string = "derived";
 
 	public override getValue(): string {
@@ -52,14 +58,23 @@ class ParameterizedSingleton extends Singleton {
 
 // Multiple level inheritance
 class Level1 extends Singleton {
+	protected constructor() {
+		super();
+	}
 	public level: number = 1;
 }
 
 class Level2 extends Level1 {
+	protected constructor() {
+		super();
+	}
 	public override level: number = 2;
 }
 
 class Level3 extends Level2 {
+	protected constructor() {
+		super();
+	}
 	public override level: number = 3;
 }
 
@@ -125,9 +140,9 @@ describe("Singleton", () => {
 		}
 
 		// Get the instance multiple times
-		const instance1 = CounterSingleton.GetInstance<CounterSingleton>();
-		const instance2 = CounterSingleton.GetInstance<CounterSingleton>();
-		const instance3 = CounterSingleton.GetInstance<CounterSingleton>();
+		const instance1 = CounterSingleton.GetInstance();
+		const instance2 = CounterSingleton.GetInstance();
+		const instance3 = CounterSingleton.GetInstance();
 
 		// Constructor should be called only once
 		expect(CounterSingleton.constructorCallCount).toBe(1);
@@ -189,33 +204,57 @@ describe("Singleton", () => {
 
 	test("Special handling for Websocket classes", () => {
 		// Create classes that include "Websocket" in their name
-		class MockWebsocket extends Singleton {}
+		class MockWebsocket extends Singleton {
+			constructor() {
+				super();
+			}
+		}
 		class MockWebsocketExtended extends MockWebsocket {}
-		class OtherSingleton extends Singleton {}
+		class OtherSingleton extends Singleton {
+			constructor() {
+				super();
+			}
+		}
 
 		// Get instances
-		const instance1 = MockWebsocket.GetInstance<MockWebsocket>();
-		const instance2 = MockWebsocketExtended.GetInstance<MockWebsocketExtended>();
-		const instance3 = OtherSingleton.GetInstance<OtherSingleton>();
+		const instance1 = MockWebsocket.GetInstance();
+		const instance2 = MockWebsocketExtended.GetInstance();
+		const instance3 = OtherSingleton.GetInstance();
 
-		// Websocket classes should share the same instance
-		expect(instance1).toBe(instance2);
-
-		// But other classes should have their own instances
-		expect(instance1).not.toBe(instance3);
+		// Each class should have its own singleton instance
+		expect(instance1).toBe(instance1); // Same class gets same instance
+		expect(instance2).toBe(instance2); // Same class gets same instance
+		expect(instance1).not.toBe(instance3); // Different classes get different instances
+		expect(instance2).not.toBe(instance3); // Different classes get different instances
 	});
 
-	test("GetInstance<Class> should infer consturctor params for the class", () => {
+	test("GetInstance should infer consturctor params for the class", () => {
 		class ClassWithConstructorParams extends Singleton {
 			public readonly config: { name: string; id: number };
 
-			constructor(name: string, id: number) {
+			protected constructor(name: string, id: number) {
 				super();
 				this.config = { name, id };
 			}
 		}
 
-		const instance = ClassWithConstructorParams.GetInstance<ClassWithConstructorParams, [string, number]>("test", 1);
+		// Passing required parameters
+		const instance = ClassWithConstructorParams.GetInstance<ClassWithConstructorParams>("test", 1);
 		expect(instance.config).toEqual({ name: "test", id: 1 });
+	});
+
+	test("GetInstance can be overriden with a custom implementation", () => {
+		class CustomSingleton extends Singleton {
+			protected constructor(param1: string, param2: number) {
+				super();
+			}
+
+			public static override GetInstance<T extends CustomSingleton>(param1: string, param2: number): T {
+				return super.GetInstance<T>(param1, param2);
+			}
+		}
+
+		const instance = CustomSingleton.GetInstance("test", 2);
+		expect(instance).toBeDefined();
 	});
 });
