@@ -1,7 +1,7 @@
-import { Throwable } from "..";
-import { ERROR_CODE } from "../errors";
-import { Debug } from "../lib";
-import Controller from "../server/controller";
+import { Throwable } from "../../..";
+import { ERROR_CODE } from "../../../errors";
+import Controller from "../../controller";
+import { Debug } from "../../../utils/Lib";
 import { Routes } from "./routes";
 
 class Router_Internal {

@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.27",
+  "version": "1.0.31",
   "description": "A bundle of TypeScript utility classes and functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,36 +13,29 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./router": {
-      "types": "./dist/router/index.d.ts",
-      "default": "./dist/router/index.js"
-    },
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "default": "./dist/server/index.js"
-    },
-    "./server/bun": {
-      "types": "./dist/server/bun/index.d.ts",
-      "default": "./dist/server/bun/index.js"
+    "./server/bun/router": {
+      "types": "./dist/server/bun/router/index.d.ts",
+      "default": "./dist/server/bun/router/index.js"
     },
     "./server/bun/websocket": {
       "types": "./dist/server/bun/websocket/index.d.ts",
       "default": "./dist/server/bun/websocket/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "default": "./dist/utils/index.js"
     }
   },
   "typesVersions": {
     "*": {
-      "router": [
-        "./dist/router/index.d.ts"
-      ],
-      "server": [
-        "./dist/server/index.d.ts"
-      ],
-      "server/bun": [
-        "./dist/server/bun/index.d.ts"
+      "server/bun/router": [
+        "./dist/server/bun/router/index.d.ts"
       ],
       "server/bun/websocket": [
         "./dist/server/bun/websocket/index.d.ts"
+      ],
+      "utils": [
+        "./dist/utils/index.d.ts"
       ]
     }
   },

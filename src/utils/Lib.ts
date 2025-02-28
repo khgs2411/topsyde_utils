@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { E_IS } from "./enums";
-import Throwable from "./throwable";
+import { E_IS } from "../enums";
+import Throwable from "../throwable";
 
 class Lib {
 	public static Log(...args: any) {

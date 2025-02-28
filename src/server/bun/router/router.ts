@@ -1,6 +1,6 @@
-import { ERROR_CODE } from "../errors";
-import Guards from "../guards";
-import Singleton from "../singleton";
+import { ERROR_CODE } from "../../../errors";
+import Singleton from "../../../singleton";
+import Guards from "../../../utils/Guards";
 import Router_Internal from "./router.internal";
 import { Routes } from "./routes";
 

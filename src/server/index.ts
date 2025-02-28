@@ -3,5 +3,3 @@
 
 export * from './controller';
 export { default as Controller } from './controller';
-
-export * from './bun';

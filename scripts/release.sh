@@ -102,8 +102,10 @@ NEW_VERSION=$(calculate_new_version "$CURRENT_VERSION" "$VERSION_TYPE")
 # Show mode notices if applicable
 if [ "$DRY_RUN" = true ]; then
   echo -e "${YELLOW}DRY RUN MODE: No actual publishing will occur${NC}"
+  echo -e "${YELLOW}Version will not be updated${NC}"
 elif [ "$TEST_PUBLISH" = true ]; then
   echo -e "${YELLOW}TEST PUBLISH MODE: Will simulate publishing without actually publishing to npm${NC}"
+  echo -e "${YELLOW}Version will not be updated${NC}"
 fi
 
 # Confirm with the user
@@ -141,21 +143,33 @@ bun run scripts/generate-indexes.ts || error_exit "Failed to generate index file
 echo -e "${YELLOW}Building the package...${NC}"
 bun run build || error_exit "Build failed"
 
-# Only bump the version if the build succeeded
-echo -e "${YELLOW}Updating version in package.json...${NC}"
-bun run version:bump $VERSION_TYPE || error_exit "Failed to update version"
-
-# Publish the package
+# Publish the package with the current version
 echo -e "${YELLOW}Publishing the package...${NC}"
+PUBLISH_SUCCESS=false
+
 if [ "$DRY_RUN" = true ]; then
   echo -e "${YELLOW}DRY RUN: Skipping actual publish${NC}"
   echo -e "${YELLOW}Command that would run: bun publish --tag $TAG --no-git-checks${NC}"
+  PUBLISH_SUCCESS=true
 elif [ "$TEST_PUBLISH" = true ]; then
   echo -e "${YELLOW}TEST PUBLISH: Simulating publish without actually publishing to npm${NC}"
   echo -e "${YELLOW}Command that would run: bun publish --tag $TAG --no-git-checks${NC}"
-  npm pack --dry-run || error_exit "Package creation failed"
+  npm pack --dry-run && PUBLISH_SUCCESS=true || error_exit "Package creation failed"
 else
-  bun publish --tag $TAG --no-git-checks || error_exit "Publishing failed"
+  bun publish --tag $TAG --no-git-checks && PUBLISH_SUCCESS=true || error_exit "Publishing failed"
+fi
+
+# Only bump the version if publishing succeeded AND we're not in dry run or test publish mode
+if [ "$PUBLISH_SUCCESS" = true ]; then
+  if [ "$DRY_RUN" = false ] && [ "$TEST_PUBLISH" = false ]; then
+    echo -e "${YELLOW}Publishing successful! Updating version in package.json...${NC}"
+    bun run version:bump $VERSION_TYPE || error_exit "Failed to update version"
+  else
+    echo -e "${YELLOW}Publishing simulation successful! Version will not be updated in dry run or test mode.${NC}"
+  fi
+else
+  # This should never be reached because error_exit will exit the script
+  echo -e "${RED}Publishing failed. Version will not be updated.${NC}"
 fi
 
 # Restore only the npm hooks from the original package.json, keeping the new version
@@ -172,11 +186,15 @@ SECONDS=$((ELAPSED_TIME % 60))
 
 if [ "$DRY_RUN" = true ]; then
   echo -e "${GREEN}Dry run completed successfully!${NC}"
+  echo -e "${GREEN}Current version:${NC} $CURRENT_VERSION (unchanged)"
+  echo -e "${GREEN}Simulated new version:${NC} $NEW_VERSION"
 elif [ "$TEST_PUBLISH" = true ]; then
   echo -e "${GREEN}Test publish completed successfully!${NC}"
+  echo -e "${GREEN}Current version:${NC} $CURRENT_VERSION (unchanged)"
+  echo -e "${GREEN}Simulated new version:${NC} $NEW_VERSION"
 else
   echo -e "${GREEN}Package published successfully!${NC}"
+  echo -e "${GREEN}New version:${NC} $NEW_VERSION"
 fi
-echo -e "${GREEN}Version:${NC} $NEW_VERSION"
 echo -e "${GREEN}Tag:${NC} $TAG"
 echo -e "${GREEN}Time taken:${NC} ${MINUTES}m ${SECONDS}s" 

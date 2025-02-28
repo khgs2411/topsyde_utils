@@ -1,5 +1,5 @@
-import type { NonNullableType } from "./types";
-import Lib from "./lib";
+import type { NonNullableType } from "../types";
+import Lib from "./Lib";
 
 class Guards {
 	public static IsString(value: any): value is string;

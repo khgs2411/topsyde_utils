@@ -30,3 +30,19 @@ export const LOG_COLORS = {
 		white: "\x1b[47m",
 	},
 };
+
+export const LOG_ICONS = {
+	info: 'ℹ️',
+	success: '✅',
+	warning: '⚠️',
+	error: '❌',
+	debug: '🔍',
+	arrow: '➜',
+	bullet: '•',
+	star: '★',
+	heart: '❤️',
+	rocket: '🚀',
+	fire: '🔥',
+	dice: '🎲',
+	bunny: '🐰',
+};
