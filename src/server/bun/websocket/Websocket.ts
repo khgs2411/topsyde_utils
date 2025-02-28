@@ -11,13 +11,22 @@ import Channel from "./Channel";
 import type { I_WebsocketEntity, WebsocketChannel, WebsocketClientData, WebsocketMessage, WebsocketStructuredMessage } from "./websocket.types";
 import { Lib } from "../../../utils";
 
-export default abstract class Websocket extends Singleton {
+export default class Websocket extends Singleton {
 	protected channels: WebsocketChannel = new Map();
-	protected server!: Server;
+	private _server!: Server;
+
 	protected constructor() {
 		super();
 		const global = new Channel("global", "Global Channel", 1000);
 		this.channels.set("global", global);
+	}
+
+	public get server(): Server {
+		return this._server;
+	}
+
+	protected set server(value: Server) {
+		this._server = value;
 	}
 
 	public set(server: Server) {
@@ -25,32 +34,34 @@ export default abstract class Websocket extends Singleton {
 		Console.success("Websocket server set");
 	}
 
+
 	public static Server() {
 		return this.GetInstance().server;
 	}
 
 	public static Broadcast(channel: string, message: WebsocketStructuredMessage) {
-		if (!this.Server()) {
+		const instance = this.GetInstance();
+		if (!instance.server) {
 			Lib.Warn("Websocket server not set");
 			return;
 		}
-		this.Server().publish(channel, JSON.stringify(message));
+		instance.server.publish(channel, JSON.stringify(message));
 	}
 
 	public static Publish(message: WebsocketStructuredMessage) {
-		const ws = Websocket.GetInstance();
+		const ws = this.GetInstance();
 		ws.channels.forEach((channel) => {
 			channel.broadcast(message);
 		});
 	}
 
 	public static Join(channel: string, entity: I_WebsocketEntity) {
-		const ws = Websocket.GetInstance();
+		const ws = this.GetInstance();
 		ws.channels.get(channel)?.addMember(entity);
 	}
 
 	public static Leave(channel: string, entity: I_WebsocketEntity) {
-		const ws = Websocket.GetInstance();
+		const ws = this.GetInstance();
 		ws.channels.get(channel)?.removeMember(entity);
 	}
 

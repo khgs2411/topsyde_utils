@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.45",
+  "version": "1.0.53",
   "description": "A bundle of TypeScript utility classes and functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,21 @@
     "dist",
     "dist/**/*"
   ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "format": "prettier --cache --write \"**/*.ts\"",
+    "format:generated": "prettier --cache --write \"src/index.ts\"",
+    "generate-indexes": "bash ./scripts/generate-indexes.sh",
+    "build:ts": "tsc",
+    "build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
+    "build:prepare": "bun run clean && bun run generate-indexes && bun run format:generated",
+    "build": "bun run build:prepare && bun run build:ts && bun run build:types",
+    "test": "bun test",
+    "release": "./scripts/release.sh",
+    "release:dry-run": "./scripts/release.sh --dry-run",
+    "release:test": "./scripts/release.sh --test-publish",
+    "version:bump": "npm version --no-git-tag-version"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -38,21 +53,6 @@
         "./dist/utils/index.d.ts"
       ]
     }
-  },
-  "scripts": {
-    "clean": "rimraf dist",
-    "format": "prettier --cache --write \"**/*.ts\"",
-    "format:generated": "prettier --cache --write \"src/index.ts\"",
-    "generate-indexes": "bash ./scripts/generate-indexes.sh",
-    "build:ts": "tsc",
-    "build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
-    "build:prepare": "bun run clean && bun run generate-indexes && bun run format:generated",
-    "build": "bun run build:prepare && bun run build:ts && bun run build:types",
-    "test": "bun test",
-    "release": "./scripts/release.sh",
-    "release:dry-run": "./scripts/release.sh --dry-run",
-    "release:test": "./scripts/release.sh --test-publish",
-    "version:bump": "npm version --no-git-tag-version"
   },
   "keywords": [
     "typescript",

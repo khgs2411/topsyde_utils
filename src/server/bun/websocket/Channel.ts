@@ -42,7 +42,21 @@ export default class Channel {
 	}
 
 	public broadcast(message: WebsocketStructuredMessage, exclude?: string[] | I_WebsocketClient[]) {
-		Websocket.Broadcast(this.id, message);
+		// Get the instance directly
+		const websocketInstance = Websocket.GetInstance();
+		
+		// Check if the server is set using getServer method
+		const server = websocketInstance.server;
+		if (!server) {
+			// If no server, send to individual clients instead
+			this.members.forEach(client => {
+				client.send(message);
+			});
+			return;
+		}
+		
+		// Use the server to publish
+		server.publish(this.id, JSON.stringify(message));
 	}
 
 	public hasMember(client: I_WebsocketClient | string) {}

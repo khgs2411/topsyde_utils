@@ -118,15 +118,11 @@ fi
 # Start time measurement
 START_TIME=$(date +%s)
 
-
-# Generate index files
-echo -e "${YELLOW}Generating index files...${NC}"
-bun run scripts/generate-indexes.ts || error_exit "Failed to generate index files"
-
 # Run tests first unless skipped
 if [ "$SKIP_TESTS" = false ]; then
   echo -e "${YELLOW}Running tests...${NC}"
-  bun test
+  # Run Jest tests
+  bun run test
   if [ $? -ne 0 ]; then
     error_exit "Tests failed. Release aborted."
   else
