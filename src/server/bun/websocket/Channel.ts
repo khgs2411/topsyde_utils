@@ -1,6 +1,7 @@
 import Websocket from "./Websocket";
 import type { WebsocketStructuredMessage, I_WebsocketClient, I_WebsocketEntity } from "./websocket.types";
 import Client from "./Client";
+import { Lib } from "../../../utils";
 
 export default class Channel {
 	protected createdAt?: Date = new Date();
@@ -42,21 +43,7 @@ export default class Channel {
 	}
 
 	public broadcast(message: WebsocketStructuredMessage, exclude?: string[] | I_WebsocketClient[]) {
-		// Get the instance directly
-		const websocketInstance = Websocket.GetInstance();
-		
-		// Check if the server is set using getServer method
-		const server = websocketInstance.server;
-		if (!server) {
-			// If no server, send to individual clients instead
-			this.members.forEach(client => {
-				client.send(message);
-			});
-			return;
-		}
-		
-		// Use the server to publish
-		server.publish(this.id, JSON.stringify(message));
+		Websocket.Broadcast(this.id, message);
 	}
 
 	public hasMember(client: I_WebsocketClient | string) {}

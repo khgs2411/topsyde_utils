@@ -31,11 +31,11 @@ class Router extends Singleton {
 	}
 
 	public static SetRoutes(routes: Routes) {
-		Router.GetInstance().setRoutes(routes);
+		this.GetInstance<Router>().setRoutes(routes);
 	}
 
 	private static getMethodMap<T>(): MethodMap<T> {
-		const router = Router.GetInstance();
+		const router = this.GetInstance<Router>();
 		return {
 			GET: async (req) => await router.internal.get(req),
 			POST: async (req) => await router.internal.post(req),

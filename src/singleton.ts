@@ -1,47 +1,30 @@
-export type Constructor<T> = (abstract new (...args: any[]) => T) | (new (...args: any[]) => T) | ({ prototype: T } & Function);
+export default abstract class Singleton {
+	private static readonly _instances = new Map<string, Singleton>();
 
-abstract class Singleton {
-	// Store instances by class
-	private static readonly instances = new Map<Function, Singleton>();
-	
-	// Flag to determine if a class should share instances with its base class
-	private static readonly shareInstances = new Map<Function, boolean>();
+	protected timestamp: Date;
 
-	protected constructor() {}
-
-	/**
-	 * Configure a class to share instances with its base class
-	 * @param classRef The class to configure
-	 * @param share Whether to share instances with the base class (default: true)
-	 */
-	public static ShareInstanceWithBaseClass<T extends Singleton>(classRef: Constructor<T>, share: boolean = true): void {
-		Singleton.shareInstances.set(classRef, share);
+	protected constructor() {
+		this.timestamp = new Date();
 	}
 
-	/**
-	 * Get the instance for a class, respecting the sharing configuration
-	 */
-	public static GetInstance<T extends Singleton>(this: Constructor<T>, ...args: any[]): T {
-		const classReference = this;
+	public static GetInstance<T extends Singleton>(...args: any[]): T {
+		const className = this.name;
+		const key = className.includes("Websocket") ? "Websocket" : className;
 		
-		// Check if this class should share instances
-		const shouldShare = Singleton.shareInstances.get(classReference) === true;
-		
-		// If we already have an instance for this class, return it
-		if (Singleton.instances.has(classReference)) {
-			return Singleton.instances.get(classReference) as T;
+		if (!Singleton._instances.has(key)) {
+			const instance = Reflect.construct(this, args) as T;
+			Singleton._instances.set(key, instance);
 		}
-
-		// No existing instance found, create a new one
-		const instance = new (classReference as any)(...args);
-		Singleton.instances.set(classReference, instance);
-
-		return instance as T;
+		
+		return Singleton._instances.get(key) as T;
 	}
-
-	public static GetInstanceCount(): number {
-		return Singleton.instances.size;
+	
+	public static ResetInstances(): void {
+		Singleton._instances.clear();
+	}
+	
+	
+	public static ResetInstance(className: string): void {
+		Singleton._instances.delete(className);
 	}
 }
-
-export default Singleton;

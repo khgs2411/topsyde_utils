@@ -39,7 +39,6 @@ export { default as Console } from "./utils/Console";
 
 // Re-export specific items for backward compatibility
 export { ERROR_CODE, HTTP_ERROR_CODE, WS_ERROR_CODE } from "./errors";
-export { Constructor } from "./singleton";
 export { InitializableOptions, InitializableEvent } from "./initializable";
 export { RESPONSE_INIT, RESPONSE_METHOD_OPTIONS } from "./application";
 export { DEFAULT_FALSE_RESPONSE, LOG_COLORS, LOG_ICONS } from "./consts";
