@@ -150,7 +150,7 @@ elif [ "$TEST_PUBLISH" = true ]; then
   echo -e "${YELLOW}Command that would run: bun publish --tag $TAG --no-git-checks${NC}"
   npm pack --dry-run && PUBLISH_SUCCESS=true || error_exit "Package creation failed"
 else
-  bun publish --tag $TAG --no-git-checks && PUBLISH_SUCCESS=true || error_exit "Publishing failed"
+  bun publish --tag $TAG --no-git-checks --silent && PUBLISH_SUCCESS=true || error_exit "Publishing failed"
 fi
 
 # Only bump the version if publishing succeeded AND we're not in dry run or test publish mode
