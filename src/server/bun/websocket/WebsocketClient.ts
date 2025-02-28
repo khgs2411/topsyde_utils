@@ -1,11 +1,11 @@
 import { ServerWebSocket } from "bun";
 import Channel from "./Channel";
-import type { I_WebsocketClient, WebsocketClientData, Channel } from "./websocket.types";
+import type { I_WebsocketClient, WebsocketClientData, WebsocketChannel } from "./websocket.types";
 
 export default class WebsocketClient implements I_WebsocketClient {
 	public id: string;
 	public ws: ServerWebSocket<WebsocketClientData>;
-	private channels: Channel = new Map();
+	private channels: WebsocketChannel = new Map();
 
 	constructor(id: string, ws: ServerWebSocket<WebsocketClientData>) {
 		this.id = id;
