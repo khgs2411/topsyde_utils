@@ -10,15 +10,6 @@ NC='\033[0m' # No Color
 # Error handling function
 error_exit() {
   echo -e "${RED}ERROR: $1${NC}" >&2
-  # Restore original package.json if it was modified
-  if [ -f "package.json.bak" ]; then
-    # Only restore the hooks, not the version
-    jq --slurpfile backup package.json.bak '.scripts.prepublishOnly = $backup[0].scripts.prepublishOnly | .scripts.prepare = $backup[0].scripts.prepare' package.json > package.json.tmp
-    if [ $? -eq 0 ]; then
-      mv package.json.tmp package.json
-    fi
-    rm package.json.bak
-  fi
   exit 1
 }
 
@@ -31,6 +22,7 @@ show_usage() {
   echo -e "  tag:   Optional tag for the release (default: latest)"
   echo -e "  --dry-run: Run through the process without actually publishing"
   echo -e "  --test-publish: Simulate publishing without actually publishing to npm"
+  echo -e "  --skip-tests: Skip running tests (not recommended)"
   echo
   echo -e "${BLUE}Examples:${NC}"
   echo -e "  $0              # Release a patch update with 'latest' tag"
@@ -44,6 +36,7 @@ show_usage() {
 # Process arguments
 DRY_RUN=false
 TEST_PUBLISH=false
+SKIP_TESTS=false
 VERSION_TYPE="patch"
 TAG="latest"
 
@@ -53,6 +46,8 @@ for arg in "$@"; do
     DRY_RUN=true
   elif [ "$arg" == "--test-publish" ]; then
     TEST_PUBLISH=true
+  elif [ "$arg" == "--skip-tests" ]; then
+    SKIP_TESTS=true
   elif [[ "$arg" =~ ^(patch|minor|major)$ ]]; then
     VERSION_TYPE="$arg"
   elif [[ "$arg" != "--"* ]]; then
@@ -123,21 +118,24 @@ fi
 # Start time measurement
 START_TIME=$(date +%s)
 
-# Backup original package.json
-cp package.json package.json.bak || error_exit "Failed to backup package.json"
-
-# Disable npm hooks to prevent duplicate builds
-echo -e "${YELLOW}Preparing package.json...${NC}"
-if ! command -v jq &> /dev/null; then
-  error_exit "jq is required but not installed. Please install jq."
-fi
-
-jq '.scripts.prepublishOnly = "echo Skipping prepublishOnly during release" | .scripts.prepare = "echo Skipping prepare during release"' package.json > package.json.tmp || error_exit "Failed to modify package.json"
-mv package.json.tmp package.json || error_exit "Failed to update package.json"
 
 # Generate index files
 echo -e "${YELLOW}Generating index files...${NC}"
 bun run scripts/generate-indexes.ts || error_exit "Failed to generate index files"
+
+# Run tests first unless skipped
+if [ "$SKIP_TESTS" = false ]; then
+  echo -e "${YELLOW}Running tests...${NC}"
+  bun test
+  if [ $? -ne 0 ]; then
+    error_exit "Tests failed. Release aborted."
+  else
+    echo -e "${GREEN}Tests passed successfully!${NC}"
+  fi
+else
+  echo -e "${YELLOW}WARNING: Tests were skipped. This is not recommended.${NC}"
+fi
+
 
 # Build the package first, before bumping the version
 echo -e "${YELLOW}Building the package...${NC}"
@@ -171,12 +169,6 @@ else
   # This should never be reached because error_exit will exit the script
   echo -e "${RED}Publishing failed. Version will not be updated.${NC}"
 fi
-
-# Restore only the npm hooks from the original package.json, keeping the new version
-echo -e "${YELLOW}Restoring npm hooks in package.json...${NC}"
-jq --slurpfile backup package.json.bak '.scripts.prepublishOnly = $backup[0].scripts.prepublishOnly | .scripts.prepare = $backup[0].scripts.prepare' package.json > package.json.tmp || error_exit "Failed to restore npm hooks"
-mv package.json.tmp package.json || error_exit "Failed to update package.json"
-rm package.json.bak
 
 # Calculate elapsed time
 END_TIME=$(date +%s)

@@ -1,14 +1,14 @@
 import Websocket from "./Websocket";
-import type { WebsocketStructuredMessage, I_WebsocketClient } from "./websocket.types";
+import type { WebsocketStructuredMessage, I_WebsocketClient, I_WebsocketEntity } from "./websocket.types";
 import Client from "./Client";
 
 export default class Channel {
-	private createdAt?: Date = new Date();
-	private id: string;
-	private name: string;
-	private limit: number;
-	private members: Map<string, Client>;
-	private metadata: Record<string, string>;
+	protected createdAt?: Date = new Date();
+	protected id: string;
+	protected name: string;
+	protected limit: number;
+	protected members: Map<string, Client>;
+	protected metadata: Record<string, string>;
 
 	constructor(id: string, name: string, limit?: number, members?: Map<string, Client>, metadata?: Record<string, string>) {
 		this.id = id;
@@ -18,11 +18,11 @@ export default class Channel {
 		this.metadata = metadata ?? {};
 	}
 
-	public addMember(client: Client) {
-		if (this.canAddMember()) {
-			this.members.set(client.getId(), client);
-			client.joinChannel(this);
-		}
+	public addMember(entity: I_WebsocketEntity) {
+		if (!this.canAddMember()) return;
+		const client = new Client(entity.id, entity.ws);
+		this.members.set(client.getId(), client);
+		client.joinChannel(this);
 
 		this.broadcast({
 			type: "channel.member.added",
@@ -33,20 +33,26 @@ export default class Channel {
 		});
 	}
 
-	public removeMember(client: Client) {
-		this.members.delete(client.getId());
+	public removeMember(entity: I_WebsocketEntity) {
+		if (!this.members.has(entity.id)) return;
+		const client = this.members.get(entity.id);
+		if (!client) return;
 		client.leaveChannel(this);
+		this.members.delete(entity.id);
 	}
 
 	public broadcast(message: WebsocketStructuredMessage, exclude?: string[] | I_WebsocketClient[]) {
-		Websocket.Server().publish(this.id, JSON.stringify(message));
+		Websocket.Broadcast(this.id, message);
 	}
 
 	public hasMember(client: I_WebsocketClient | string) {}
+
 	public getMember(client: I_WebsocketClient | string) {}
-	public getMembers(): Client[] {
+
+	public getMembers(): I_WebsocketClient[] {
 		return Array.from(this.members.values());
 	}
+
 	public getMetadata() {
 		return this.metadata;
 	}

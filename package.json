@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.34",
+  "version": "1.0.45",
   "description": "A bundle of TypeScript utility classes and functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -49,8 +49,6 @@
     "build:prepare": "bun run clean && bun run generate-indexes && bun run format:generated",
     "build": "bun run build:prepare && bun run build:ts && bun run build:types",
     "test": "bun test",
-    "prepublishOnly": "bun run build",
-    "prepare": "bun run build",
     "release": "./scripts/release.sh",
     "release:dry-run": "./scripts/release.sh --dry-run",
     "release:test": "./scripts/release.sh --test-publish",

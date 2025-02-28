@@ -5,16 +5,16 @@ we will start with a websocket implementation - an abstraction of bun's websocke
 lets start simple, I want an abstraction interface for the handlers, suggest a strategy */
 
 import { Server, ServerWebSocket, WebSocketHandler } from "bun";
-import Channel from "./Channel";
-import Client from "./Client";
 import Singleton from "../../../singleton";
-import type { WebsocketChannel, WebsocketClientData, WebsocketMessage } from "./websocket.types";
+import { Console } from "../../../utils/Console";
+import Channel from "./Channel";
+import type { I_WebsocketEntity, WebsocketChannel, WebsocketClientData, WebsocketMessage, WebsocketStructuredMessage } from "./websocket.types";
+import { Lib } from "../../../utils";
 
-
-export default class Websocket extends Singleton {
-	private channels: WebsocketChannel = new Map();
-	private server!: Server;
-	private constructor() {
+export default abstract class Websocket extends Singleton {
+	protected channels: WebsocketChannel = new Map();
+	protected server!: Server;
+	protected constructor() {
 		super();
 		const global = new Channel("global", "Global Channel", 1000);
 		this.channels.set("global", global);
@@ -22,34 +22,64 @@ export default class Websocket extends Singleton {
 
 	public set(server: Server) {
 		this.server = server;
+		Console.success("Websocket server set");
 	}
 
 	public static Server() {
-		return Websocket.GetInstance().server;
+		return this.GetInstance().server;
+	}
+
+	public static Broadcast(channel: string, message: WebsocketStructuredMessage) {
+		if (!this.Server()) {
+			Lib.Warn("Websocket server not set");
+			return;
+		}
+		this.Server().publish(channel, JSON.stringify(message));
+	}
+
+	public static Publish(message: WebsocketStructuredMessage) {
+		const ws = Websocket.GetInstance();
+		ws.channels.forEach((channel) => {
+			channel.broadcast(message);
+		});
+	}
+
+	public static Join(channel: string, entity: I_WebsocketEntity) {
+		const ws = Websocket.GetInstance();
+		ws.channels.get(channel)?.addMember(entity);
+	}
+
+	public static Leave(channel: string, entity: I_WebsocketEntity) {
+		const ws = Websocket.GetInstance();
+		ws.channels.get(channel)?.removeMember(entity);
 	}
 
 	public setup(): WebSocketHandler<WebsocketClientData> {
 		return {
-			message: this.messageReceived,
 			open: this.clientConnected,
+			message: this.clientMessageReceived,
 			close: this.clientDisconnected,
 		};
 	}
 
-	private messageReceived = (ws: ServerWebSocket<WebsocketClientData>, message: WebsocketMessage) => {
+	private clientMessageReceived = (ws: ServerWebSocket<WebsocketClientData>, message: WebsocketMessage) => {
 		console.log("Received message:", message);
-		if (message === "ping") ws.send("pong");
-		else ws.send(message);
+		if (message === "ping") {
+			const pong: WebsocketStructuredMessage = { type: "pong", content: "pong" };
+			ws.send(JSON.stringify(pong));
+		} else ws.send(message);
+		Websocket.Publish({ type: "client.message.received", content: message });
 	};
 
 	private clientConnected = (ws: ServerWebSocket<WebsocketClientData>) => {
-		console.log("WebSocket connection opened");
 		const global = this.channels.get("global");
-		const client = new Client(ws.data.id, ws);
-		if (global) global.addMember(client);
+		if (global) global.addMember({ id: ws.data.id, ws });
 	};
 
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketClientData>) => {
 		console.log("WebSocket connection closed");
+		this.channels.forEach((channel) => {
+			channel.removeMember({ id: ws.data.id, ws });
+		});
 	};
 }

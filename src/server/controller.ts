@@ -5,7 +5,9 @@ import { Guards } from "../utils";
 
 export type ControllerResponse<T = unknown> = Promise<I_ApplicationResponse<T> | PromiseLike<I_ApplicationResponse<T>>>;
 export type ControllerAction<T> = (req: Request) => ControllerResponse<T>;
+
 export type ControllerMap<T = unknown> = Map<string, ControllerAction<T>>;
+
 export type ControllerOptions<T = unknown> = InitializableOptions & {
 	path: string | undefined;
 	post: Map<string, ControllerAction<T>>;
