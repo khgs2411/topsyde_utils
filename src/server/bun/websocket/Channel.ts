@@ -11,7 +11,7 @@ export default class Channel {
 	protected members: Map<string, Client>;
 	protected metadata: Record<string, string>;
 
-	private constructor(id: string, name: string, limit?: number, members?: Map<string, Client>, metadata?: Record<string, string>) {
+	constructor(id: string, name: string, limit?: number, members?: Map<string, Client>, metadata?: Record<string, string>) {
 		this.id = id;
 		this.name = name;
 		this.limit = limit ?? 5;
@@ -19,10 +19,6 @@ export default class Channel {
 		this.metadata = metadata ?? {};
 	}
 
-	public static Create(id: string, name: string, limit?: number, members?: Map<string, Client>, metadata?: Record<string, string>) {
-		const channel = new Channel(id, name, limit, members, metadata);
-		return channel;
-	}
 
 	public addMember(entity: I_WebsocketEntity) {
 		if (!this.canAddMember()) return;
