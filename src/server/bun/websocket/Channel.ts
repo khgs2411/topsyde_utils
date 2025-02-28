@@ -26,7 +26,7 @@ export default class Channel {
 
 		this.broadcast({
 			type: "channel.member.added",
-			data: {
+			content: {
 				channelId: this.id,
 				clientId: client.getId(),
 			},

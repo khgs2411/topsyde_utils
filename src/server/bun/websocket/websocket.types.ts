@@ -13,6 +13,6 @@ export type WebsocketClientData = {
 export type WebsocketMessage = string | Buffer<ArrayBufferLike>;
 export type WebsocketStructuredMessage = {
 	type: string;
-	data: any;
+	content: any;
 };
 export type WebsocketChannel<T extends Channel = Channel> = Map<string, T>;
