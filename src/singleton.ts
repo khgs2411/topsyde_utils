@@ -3,15 +3,6 @@
  */
 export type Constructor<T> = (abstract new (...args: any[]) => T) | (new (...args: any[]) => T) | ({ prototype: T } & Function);
 
-/**
- * Interface for singleton classes, providing type-safe instance management
- */
-export type SingletonConstructor<T extends Singleton = Singleton> = Constructor<T> & {
-	//support all overloaded methods
-	GetInstance<T extends Singleton>(this: Constructor<T>): T;
-	GetInstance<T extends Singleton>(this: Constructor<T>, ...args: ConstructorParameters<new (...args: any[]) => T>): T;
-	GetInstanceCount(): number;
-};
 
 /**
  * Base class for implementing the singleton pattern with type-safe instance management.

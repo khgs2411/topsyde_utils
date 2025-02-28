@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.19",
+  "version": "1.0.22",
   "description": "A bundle of TypeScript utility classes and functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,6 +20,10 @@
     "./server": {
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
+    },
+    "./server/bun": {
+      "types": "./dist/server/bun/index.d.ts",
+      "default": "./dist/server/bun/index.js"
     }
   },
   "typesVersions": {
@@ -29,6 +33,9 @@
       ],
       "server": [
         "./dist/server/index.d.ts"
+      ],
+      "server/bun": [
+        "./dist/server/bun/index.d.ts"
       ]
     }
   },
