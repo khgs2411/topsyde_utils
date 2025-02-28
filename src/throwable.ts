@@ -1,5 +1,5 @@
-import Guards from "./guards";
-import Lib from "./lib";
+import { Guards, Lib } from "./utils";
+
 
 /**
  * @description Custom error class for errors that are expected to be thrown

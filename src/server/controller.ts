@@ -1,7 +1,7 @@
 import { ERROR_CODE } from "../errors";
-import Guards from "../guards";
 import Initializable, { InitializableOptions } from "../initializable";
 import { I_ApplicationResponse } from "../types";
+import { Guards } from "../utils";
 
 export type ControllerResponse<T = unknown> = Promise<I_ApplicationResponse<T> | PromiseLike<I_ApplicationResponse<T>>>;
 export type ControllerAction<T> = (req: Request) => ControllerResponse<T>;

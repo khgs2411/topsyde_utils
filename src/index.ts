@@ -18,8 +18,9 @@ export * from './server/bun/websocket/Websocket';
 export * from './server/bun/websocket/WebsocketClient';
 export * from './server/bun/websocket/websocket.types';
 export * from './server/bun/websocket/Channel';
-export * from './utils/Lib';
 export * from './utils/Guards';
+export * from './utils/Lib';
+export * from './utils/Console';
 
 // Export default classes
 export { default as Singleton } from './singleton';
@@ -32,15 +33,16 @@ export { default as Router_Internal } from './server/bun/router/router.internal'
 export { default as Websocket } from './server/bun/websocket/Websocket';
 export { default as WebsocketClient } from './server/bun/websocket/WebsocketClient';
 export { default as Channel } from './server/bun/websocket/Channel';
-export { default as Lib } from './utils/Lib';
 export { default as Guards } from './utils/Guards';
+export { default as Lib } from './utils/Lib';
+export { default as Console } from './utils/Console';
 
 // Re-export specific items for backward compatibility
 export { ERROR_CODE,HTTP_ERROR_CODE,WS_ERROR_CODE } from './errors';
 export { Constructor } from './singleton';
 export { InitializableOptions,InitializableEvent } from './initializable';
 export { RESPONSE_INIT,RESPONSE_METHOD_OPTIONS } from './application';
-export { DEFAULT_FALSE_RESPONSE,LOG_COLORS } from './consts';
+export { DEFAULT_FALSE_RESPONSE,LOG_COLORS,LOG_ICONS } from './consts';
 export { ClassConstructor,NonNullableType,ObjectKeys,KVObj,I_ApplicationResponse } from './types';
 export { E_IS,E_ENVIRONMENTS } from './enums';
 export { ControllerResponse,ControllerAction,ControllerMap,ControllerOptions } from './server/controller';
