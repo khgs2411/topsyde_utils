@@ -480,4 +480,23 @@ export class Debug {
 		if (process.env.NODE_ENV === "production") return;
 		Lib.LogObject(object, text);
 	}
+
+	public static GetLocalIpAddress(): string {
+		try {
+			const { networkInterfaces } = require("os");
+			const nets = networkInterfaces();
+
+			for (const name of Object.keys(nets)) {
+				for (const net of nets[name]) {
+					// Skip internal and non-IPv4 addresses
+					if (!net.internal && net.family === "IPv4") {
+						return net.address;
+					}
+				}
+			}
+			return "127.0.0.1"; // Fallback to localhost
+		} catch (err) {
+			return "127.0.0.1"; // Fallback to localhost
+		}
+	}
 }
