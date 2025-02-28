@@ -1,4 +1,5 @@
-import Websocket, { I_WebsocketClient, WebsocketStructuredMessage } from "./Websocket";
+import Websocket from "./Websocket";
+import type { WebsocketStructuredMessage, I_WebsocketClient } from "./websocket.types";
 import WebsocketClient from "./WebsocketClient";
 
 export default class Channel {

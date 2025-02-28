@@ -133,13 +133,17 @@ fi
 jq '.scripts.prepublishOnly = "echo Skipping prepublishOnly during release" | .scripts.prepare = "echo Skipping prepare during release"' package.json > package.json.tmp || error_exit "Failed to modify package.json"
 mv package.json.tmp package.json || error_exit "Failed to update package.json"
 
-# Update version in package.json
-echo -e "${YELLOW}Updating version in package.json...${NC}"
-bun run version:bump $VERSION_TYPE || error_exit "Failed to update version"
+# Generate index files
+echo -e "${YELLOW}Generating index files...${NC}"
+bun run scripts/generate-indexes.ts || error_exit "Failed to generate index files"
 
-# Build the package
+# Build the package first, before bumping the version
 echo -e "${YELLOW}Building the package...${NC}"
 bun run build || error_exit "Build failed"
+
+# Only bump the version if the build succeeded
+echo -e "${YELLOW}Updating version in package.json...${NC}"
+bun run version:bump $VERSION_TYPE || error_exit "Failed to update version"
 
 # Publish the package
 echo -e "${YELLOW}Publishing the package...${NC}"

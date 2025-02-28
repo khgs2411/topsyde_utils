@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.22",
+  "version": "1.0.27",
   "description": "A bundle of TypeScript utility classes and functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,6 +24,10 @@
     "./server/bun": {
       "types": "./dist/server/bun/index.d.ts",
       "default": "./dist/server/bun/index.js"
+    },
+    "./server/bun/websocket": {
+      "types": "./dist/server/bun/websocket/index.d.ts",
+      "default": "./dist/server/bun/websocket/index.js"
     }
   },
   "typesVersions": {
@@ -36,6 +40,9 @@
       ],
       "server/bun": [
         "./dist/server/bun/index.d.ts"
+      ],
+      "server/bun/websocket": [
+        "./dist/server/bun/websocket/index.d.ts"
       ]
     }
   },
@@ -43,7 +50,7 @@
     "clean": "rimraf dist",
     "format": "prettier --cache --write \"**/*.ts\"",
     "format:generated": "prettier --cache --write \"src/index.ts\"",
-    "generate-indexes": "./scripts/generate-indexes.sh",
+    "generate-indexes": "bash ./scripts/generate-indexes.sh",
     "build:ts": "tsc",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
     "build:prepare": "bun run clean && bun run generate-indexes && bun run format:generated",

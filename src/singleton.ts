@@ -1,31 +1,7 @@
-/**
- * Type representing a constructor function or class type
- */
+
 export type Constructor<T> = (abstract new (...args: any[]) => T) | (new (...args: any[]) => T) | ({ prototype: T } & Function);
 
 
-/**
- * Base class for implementing the singleton pattern with type-safe instance management.
- * Supports constructors with any number of arguments.
- *
- * @example
- * // No constructor arguments
- * class DatabaseExample extends Singleton {
- *     private constructor() { super(); }
- *     public static async Connection() {
- *         return this.GetInstance();
- *     }
- * }
- *
- * @example
- * // With constructor arguments
- * class EncryptionServiceExample extends Singleton {
- *     private constructor(key: string, algorithm: string) { super(); }
- *     public static Create(key: string, algorithm: string) {
- *         return this.GetInstance(key, algorithm);
- *     }
- * }
- */
 abstract class Singleton {
 	private static readonly instances = new Map<Function, Singleton>();
 

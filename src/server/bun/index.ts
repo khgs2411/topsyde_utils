@@ -3,3 +3,4 @@
 
 export * from './websocket/Websocket';
 export { default as Websocket } from './websocket/Websocket';
+export * from './websocket';
