@@ -1,4 +1,7 @@
 import Singleton from "../singleton";
+import Channel from "../server/bun/websocket/Channel";
+import { WebsocketStructuredMessage } from "../server/bun/websocket/websocket.types";
+import * as app from "../server/bun/websocket";
 
 // Base class that extends Singleton
 class BaseClass extends Singleton {
@@ -256,5 +259,33 @@ describe("Singleton", () => {
 
 		const instance = CustomSingleton.GetInstance("test", 2);
 		expect(instance).toBeDefined();
+	});
+
+	it("should allow custom channel implementation", () => {
+		class CustomChannel extends Channel {
+			public broadcast(message: WebsocketStructuredMessage) {
+				console.log("CONSOLE LOG");
+			}
+		}
+
+		// Create a map with our custom channel
+		const customChannels = new Map<string, CustomChannel>();
+		customChannels.set("custom_channel", new CustomChannel("custom_channel", "Test Channel", 5));
+		// Create a new Websocket instance with our custom channels
+		const ws = app.Websocket.GetInstance<app.Websocket>(undefined, customChannels);
+
+		// Create a new channel - it should be a CustomChannel instance
+		const newChannel = ws.createChannel("test", "Test Channel", 5);
+		expect(newChannel).toBeInstanceOf(CustomChannel);
+
+		// Verify that broadcast uses our custom implementation
+		const spy = jest.spyOn(console, "log");
+		newChannel.broadcast({ type: "test", content: "test message" });
+		expect(spy).toHaveBeenCalledWith("CONSOLE LOG");
+		spy.mockRestore();
+
+		// Verify that the global channel is also a CustomChannel
+		const globalChannel = app.Websocket.GetChannel("global");
+		expect(globalChannel).toBeInstanceOf(CustomChannel);
 	});
 });

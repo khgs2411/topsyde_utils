@@ -62,8 +62,9 @@ describe("Websocket Tests", () => {
 		};
 
 		const mockClient = {
-			id: "test-client",
+			id: "123",
 			ws: mockWs as any,
+			name: "test-client",
 		};
 
 		// Join a channel
@@ -81,7 +82,7 @@ describe("Websocket Tests", () => {
 			content: "Broadcast to all channels",
 		};
 
-		_Websocket.Publish(message);
+		_Websocket.BraodcastAll(message);
 		// No assertion needed, just checking it doesn't throw
 	});
 

@@ -1,15 +1,14 @@
-import Websocket from "./Websocket";
-import type { WebsocketStructuredMessage, I_WebsocketClient, I_WebsocketEntity } from "./websocket.types";
 import Client from "./Client";
-import { Lib } from "../../../utils";
+import Websocket from "./Websocket";
+import type { I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketClientData, WebsocketStructuredMessage } from "./websocket.types";
 
-export default class Channel {
-	protected createdAt?: Date = new Date();
-	protected id: string;
-	protected name: string;
-	protected limit: number;
-	protected members: Map<string, Client>;
-	protected metadata: Record<string, string>;
+export default class Channel implements I_WebsocketChannel {
+	public createdAt: Date = new Date();
+	public id: string;
+	public name: string;
+	public limit: number;
+	public members: Map<string, Client>;
+	public metadata: Record<string, string>;
 
 	constructor(id: string, name: string, limit?: number, members?: Map<string, Client>, metadata?: Record<string, string>) {
 		this.id = id;
@@ -19,23 +18,24 @@ export default class Channel {
 		this.metadata = metadata ?? {};
 	}
 
-
 	public addMember(entity: I_WebsocketEntity) {
-		if (!this.canAddMember()) return;
-		const client = new Client(entity.id, entity.ws);
-		this.members.set(client.getId(), client);
+		if (!this.canAddMember()) return false;
+		const client = new Client(entity);
+		this.members.set(client.id, client);
 		client.joinChannel(this);
+		return client;
 	}
 
 	public removeMember(entity: I_WebsocketEntity) {
-		if (!this.members.has(entity.id)) return;
+		if (!this.members.has(entity.id)) return false;
 		const client = this.members.get(entity.id);
-		if (!client) return;
+		if (!client) return false;
 		client.leaveChannel(this);
 		this.members.delete(entity.id);
+		return client;
 	}
 
-	public broadcast(message: WebsocketStructuredMessage, exclude?: string[] | I_WebsocketEntity[]) {
+	public broadcast(message: WebsocketStructuredMessage) {
 		Websocket.Broadcast(this.id, message);
 	}
 
@@ -76,7 +76,8 @@ export default class Channel {
 	public getSize() {
 		return this.members.size;
 	}
-	private canAddMember() {
+
+	public canAddMember() {
 		const size = this.getSize();
 		return size < this.limit;
 	}

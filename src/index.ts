@@ -48,11 +48,12 @@ export { E_IS, E_ENVIRONMENTS } from "./enums";
 export { ControllerResponse, ControllerAction, ControllerMap, ControllerOptions } from "./server/controller";
 export { Routes } from "./server/bun/router/routes";
 export {
+	WebsocketMessage,
+	WebsocketChannel,
+	WebsocketStructuredMessage,
+	WebsocketClientData,
 	I_WebsocketEntity,
 	I_WebsocketClient,
-	WebsocketClientData,
-	WebsocketMessage,
-	WebsocketStructuredMessage,
-	WebsocketChannel,
+	I_WebsocketChannel,
 	I_WebsocketInterface,
 } from "./server/bun/websocket/websocket.types";
