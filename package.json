@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.112",
+  "version": "1.0.119",
   "description": "A bundle of TypeScript utility classes and functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,6 +28,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./client/rxjs": {
+      "types": "./dist/client/rxjs/index.d.ts",
+      "default": "./dist/client/rxjs/index.js"
+    },
     "./server/bun/router": {
       "types": "./dist/server/bun/router/index.d.ts",
       "default": "./dist/server/bun/router/index.js"
@@ -43,6 +47,9 @@
   },
   "typesVersions": {
     "*": {
+      "client/rxjs": [
+        "./dist/client/rxjs/index.d.ts"
+      ],
       "server/bun/router": [
         "./dist/server/bun/router/index.d.ts"
       ],
@@ -83,5 +90,9 @@
   },
   "engines": {
     "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "rxjs": "^7.8.2",
+    "vue": "^3.5.13"
   }
 }
