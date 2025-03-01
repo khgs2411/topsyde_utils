@@ -17,6 +17,7 @@ export * from "./server/bun/router/router.internal";
 export * from "./server/bun/websocket/websocket.guards";
 export * from "./server/bun/websocket/Client";
 export * from "./server/bun/websocket/Websocket";
+export * from "./server/bun/websocket/websocket.enums";
 export * from "./server/bun/websocket/websocket.types";
 export * from "./server/bun/websocket/Channel";
 export * from "./utils/Guards";
@@ -47,6 +48,8 @@ export { ClassConstructor, NonNullableType, ObjectKeys, KVObj, I_ApplicationResp
 export { E_IS, E_ENVIRONMENTS } from "./enums";
 export { ControllerResponse, ControllerAction, ControllerMap, ControllerOptions } from "./server/controller";
 export { Routes } from "./server/bun/router/routes";
+export { I_WebsocketConstructor } from "./server/bun/websocket/Websocket";
+export { E_WebsocketMessageType } from "./server/bun/websocket/websocket.enums";
 export {
 	WebsocketMessage,
 	WebsocketChannel,

@@ -1,12 +1,13 @@
 import { ServerWebSocket } from "bun";
-import Channel from "./Channel";
-import type { I_WebsocketClient, WebsocketClientData, WebsocketChannel, WebsocketStructuredMessage, I_WebsocketEntity } from "./websocket.types";
+import type { I_WebsocketClient, WebsocketClientData, WebsocketChannel, WebsocketStructuredMessage, I_WebsocketEntity, I_WebsocketChannel } from "./websocket.types";
+import { E_WebsocketMessageType } from "./websocket.enums";
+import { Lib } from "../../../utils";
 
 export default class Client implements I_WebsocketClient {
 	private _id: string;
 	private _name: string;
 	private _ws: ServerWebSocket<WebsocketClientData>;
-	private _channels: WebsocketChannel;
+	private _channels: WebsocketChannel<I_WebsocketChannel>;
 
 	private set ws(value: ServerWebSocket<WebsocketClientData>) {
 		this._ws = value;
@@ -32,11 +33,11 @@ export default class Client implements I_WebsocketClient {
 		this._name = value;
 	}
 
-	private set channels(value: WebsocketChannel) {
+	private set channels(value: WebsocketChannel<I_WebsocketChannel>) {
 		this._channels = value;
 	}
 
-	public get channels(): WebsocketChannel {
+	public get channels(): WebsocketChannel<I_WebsocketChannel> {
 		return this._channels;
 	}
 
@@ -48,31 +49,33 @@ export default class Client implements I_WebsocketClient {
 		this._channels = new Map();
 	}
 
-	public joinChannel(channel: Channel) {
+	public joinChannel(channel: I_WebsocketChannel, send: boolean = true)	 {
 		const channel_id = channel.getId();
 		this.subscribe(channel_id);
 		this.channels.set(channel_id, channel);
-		this.send({ type: "client.channel.added", content: { channel_id } });
+		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_JOIN_CHANNEL, content: { channel_id } });
 	}
 
-	public leaveChannel(channel: Channel) {
+	public leaveChannel(channel: I_WebsocketChannel, send: boolean = true) {
 		const channel_id = channel.getId();
 		this.channels.delete(channel_id);
 		this.unsubscribe(channel_id);
-		this.send({ type: "client.channel.removed", content: { channel_id } });
+		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_LEAVE_CHANNEL, content: { channel_id } });
 	}
 
-	public joinChannels(channels: Channel[]) {
+	public joinChannels(channels: I_WebsocketChannel[], send: boolean = true) {
 		channels.forEach((channel) => {
-			this.joinChannel(channel);
+			this.joinChannel(channel, false);
 		});
+		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_JOIN_CHANNELS, content: { channels } });
 	}
 
-	public leaveChannels(channels?: Channel[]) {
+	public leaveChannels(channels?: I_WebsocketChannel[], send: boolean = true) {
 		if (!channels) channels = Array.from(this.channels.values());
 		channels.forEach((channel) => {
-			this.leaveChannel(channel);
+			this.leaveChannel(channel, false);
 		});
+		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_LEAVE_CHANNELS, content: { channels } });
 	}
 
 	public whoami(): { id: string; name: string } {
@@ -89,5 +92,19 @@ export default class Client implements I_WebsocketClient {
 
 	public unsubscribe(channel: string): void {
 		this.ws.unsubscribe(channel);
+	}
+
+	public static GetClientType(clients: Map<string, I_WebsocketClient> | undefined): typeof Client {
+		if (!clients) return Client;
+		if (clients.size > 0) {
+			const firstClient = clients.values().next().value;
+			if (firstClient) {
+				return firstClient.constructor as typeof Client;
+			}
+		}
+		
+		// Fallback to default Client class
+		Lib.Warn("Clients map is empty, using default client class");
+		return Client;
 	}
 }

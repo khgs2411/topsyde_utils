@@ -3,6 +3,7 @@ import Singleton from "../../../singleton";
 import { Lib } from "../../../utils";
 import { Console } from "../../../utils/Console";
 import Channel from "./Channel";
+import Client from "./Client";
 import type {
 	I_WebsocketChannel,
 	I_WebsocketClient,
@@ -13,18 +14,28 @@ import type {
 	WebsocketMessage,
 	WebsocketStructuredMessage,
 } from "./websocket.types";
+import { E_WebsocketMessageType } from "./websocket.enums";
+
+export interface I_WebsocketConstructor {
+	ws_interface?: I_WebsocketInterface;
+	channels?: WebsocketChannel;
+	clientClass?: typeof Client;
+	channelClass?: typeof Channel;
+}
 
 export default class Websocket extends Singleton {
 	protected _channels: WebsocketChannel;
 	protected _clients: Map<string, I_WebsocketClient> = new Map();
 	private _server!: Server;
 	private _channelClass: typeof Channel;
+	private _clientClass: typeof Client;
 	private _ws_interface?: I_WebsocketInterface;
-	protected constructor(options?: { ws_interface?: I_WebsocketInterface; channels?: WebsocketChannel }) {
+	protected constructor(options?: I_WebsocketConstructor) {
 		super();
-		this._ws_interface = options?.	ws_interface;
+		this._ws_interface = options?.ws_interface;
 		this._channels = options?.channels ?? new Map<string, Channel>();
-		this._channelClass = this.getChannelClass(options?.channels);
+		this._clientClass = options?.clientClass ?? Client;
+		this._channelClass = options?.channelClass ?? Channel.GetChannelType(options?.channels);
 		this.createChannel("global", "Global", 1000);
 	}
 
@@ -46,6 +57,10 @@ export default class Websocket extends Singleton {
 		const channel = new this._channelClass(id, name, limit);
 		this._channels.set(id, channel);
 		return channel;
+	}
+
+	public removeChannel(id: string) {
+		this._channels.delete(id);
 	}
 
 	public static CreateChannel(id: string, name: string, limit?: number) {
@@ -84,22 +99,26 @@ export default class Websocket extends Singleton {
 		const global = this._channels.get("global");
 		if (!global) throw new Error("Global channel not found");
 
-		const client = global.addMember({ id: ws.data.id, ws: ws, name: ws.data.name });
-		if (!client) throw new Error("Failed to add client to global channel");
-
+		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
 		this._clients.set(client.id, client);
-		client.send({ type: "client.connected", content: { client: client.whoami() } });
+		global.addMember(client);
+		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { client: client.whoami() } });
 	};
 
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketClientData>) => {
 		Lib.Log("WebSocket connection closed");
-
+		const client = this._clients.get(ws.data.id);
+		if (!client) return;
 		this._channels.forEach((channel) => {
-			channel.removeMember({ id: ws.data.id, ws: ws, name: ws.data.name });
+			channel.removeMember(client);
 		});
 
 		this._clients.delete(ws.data.id);
 	};
+
+	protected createClient(entity: I_WebsocketEntity): I_WebsocketClient {
+		return new this._clientClass(entity);
+	}
 
 	public static Heartbeat(ws: ServerWebSocket<WebsocketClientData>, message: WebsocketMessage) {
 		const self = this.GetInstance<Websocket>();
@@ -110,28 +129,32 @@ export default class Websocket extends Singleton {
 		return this.GetInstance<Websocket>().server;
 	}
 
-	public static Broadcast(channel: string, message: WebsocketStructuredMessage) {
+	public static Broadcast(channel: string, message: WebsocketStructuredMessage, ...args: any[]) {
 		// Get the server from the singleton instance
 		const ws = Websocket.GetInstance<Websocket>();
 		if (!ws.server) {
 			throw new Error("Websocket server not set");
 		}
-		ws.server.publish(channel, JSON.stringify(message));
+		ws.server.publish(channel, JSON.stringify({ message, args }));
 	}
 
-	public static BraodcastAll(message: WebsocketStructuredMessage) {
+	public static BraodcastAll(message: WebsocketStructuredMessage, ...args: any[]) {
 		const ws = this.GetInstance<Websocket>();
-		ws._channels.forEach((channel) => channel.broadcast(message));
+		ws._channels.forEach((channel) => channel.broadcast(message, ...args));
 	}
 
 	public static Join(channel: string, entity: I_WebsocketEntity) {
 		const ws = this.GetInstance<Websocket>();
-		ws._channels.get(channel)?.addMember(entity);
+		const client = ws._clients.get(entity.id);
+		if (!client) return;
+		ws._channels.get(channel)?.addMember(client);
 	}
 
 	public static Leave(channel: string, entity: I_WebsocketEntity) {
 		const ws = this.GetInstance<Websocket>();
-		ws._channels.get(channel)?.removeMember(entity);
+		const client = ws._clients.get(entity.id);
+		if (!client) return;
+		ws._channels.get(channel)?.removeMember(client);
 	}
 
 	public static GetClient(id: string) {
@@ -164,16 +187,8 @@ export default class Websocket extends Singleton {
 		return ws._channels.size;
 	}
 
-	private getChannelClass(channels: WebsocketChannel | undefined) {
-		if (channels && channels.size > 0) {
-			const firstChannel = channels.values().next().value;
-			if (firstChannel) {
-				return firstChannel.constructor as typeof Channel;
-			} else {
-				return Channel;
-			}
-		} else {
-			return Channel;
-		}
+	public static CreateClient(entity: I_WebsocketEntity): I_WebsocketClient {
+		const ws = this.GetInstance<Websocket>();
+		return ws.createClient(entity);
 	}
 }

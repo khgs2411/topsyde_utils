@@ -4,6 +4,7 @@
 export * from './websocket.guards';
 export * from './Client';
 export * from './Websocket';
+export * from './websocket.enums';
 export * from './websocket.types';
 export * from './Channel';
 export { default as Client } from './Client';

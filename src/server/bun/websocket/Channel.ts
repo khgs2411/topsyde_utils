@@ -1,16 +1,16 @@
-import Client from "./Client";
+import { Lib } from "../../../utils";
 import Websocket from "./Websocket";
-import type { I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketClientData, WebsocketStructuredMessage } from "./websocket.types";
+import type { I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketChannel, WebsocketStructuredMessage } from "./websocket.types";
 
 export default class Channel implements I_WebsocketChannel {
 	public createdAt: Date = new Date();
 	public id: string;
 	public name: string;
 	public limit: number;
-	public members: Map<string, Client>;
+	public members: Map<string, I_WebsocketClient>;
 	public metadata: Record<string, string>;
 
-	constructor(id: string, name: string, limit?: number, members?: Map<string, Client>, metadata?: Record<string, string>) {
+	constructor(id: string, name: string, limit?: number, members?: Map<string, I_WebsocketClient>, metadata?: Record<string, string>) {
 		this.id = id;
 		this.name = name;
 		this.limit = limit ?? 5;
@@ -18,9 +18,17 @@ export default class Channel implements I_WebsocketChannel {
 		this.metadata = metadata ?? {};
 	}
 
-	public addMember(entity: I_WebsocketEntity) {
+	public broadcast<T = any>(message: WebsocketStructuredMessage, ...args: T[]) {
+		Websocket.Broadcast(this.id, message, ...args);
+	}
+
+	public hasMember(client: I_WebsocketEntity | string) {
+		if (typeof client === "string") return this.members.has(client);
+		return this.members.has(client.id);
+	}
+
+	public addMember(client: I_WebsocketClient) {
 		if (!this.canAddMember()) return false;
-		const client = new Client(entity);
 		this.members.set(client.id, client);
 		client.joinChannel(this);
 		return client;
@@ -35,22 +43,14 @@ export default class Channel implements I_WebsocketChannel {
 		return client;
 	}
 
-	public broadcast(message: WebsocketStructuredMessage) {
-		Websocket.Broadcast(this.id, message);
-	}
-
-	public hasMember(client: I_WebsocketEntity | string) {
-		if (typeof client === "string") return this.members.has(client);
-		return this.members.has(client.id);
-	}
-
 	public getMember(client: I_WebsocketEntity | string) {
 		if (typeof client === "string") return this.members.get(client);
 		return this.members.get(client.id);
 	}
 
-	public getMembers(): I_WebsocketClient[] {
-		return Array.from(this.members.values());
+	public getMembers(clients?: string[] | I_WebsocketEntity[]): I_WebsocketClient[] {
+		if (!clients) return Array.from(this.members.values());
+		return clients.map((client) => this.getMember(client)).filter((client) => client !== undefined) as I_WebsocketClient[];
 	}
 
 	public getMetadata() {
@@ -80,5 +80,20 @@ export default class Channel implements I_WebsocketChannel {
 	public canAddMember() {
 		const size = this.getSize();
 		return size < this.limit;
+	}
+
+	public static GetChannelType(channels: WebsocketChannel<I_WebsocketChannel> | undefined) {
+		if (!channels) return Channel;
+		if (channels.size > 0) {
+			const firstChannel = channels.values().next().value;
+			if (firstChannel) {
+				return firstChannel.constructor as typeof Channel;
+			} else {
+				return Channel;
+			}
+		} else {
+			Lib.Warn("Channels are empty, using default channel class");
+			return Channel;
+		}
 	}
 }

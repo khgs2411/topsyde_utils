@@ -5,9 +5,9 @@ export type WebsocketMessage = string | Buffer<ArrayBufferLike>;
 
 export type WebsocketChannel<T extends I_WebsocketChannel = Channel> = Map<string, T>;
 
-export type WebsocketStructuredMessage = {
+export type WebsocketStructuredMessage<T = any> = {
 	type: string;
-	content: any;
+	content: T;
 	channel?: string;
 	metadata?: Record<string, string>;
 };
@@ -21,10 +21,14 @@ export interface I_WebsocketEntity {
 }
 
 export interface I_WebsocketClient extends I_WebsocketEntity {
-	channels: WebsocketChannel;
-	send(message: WebsocketStructuredMessage): void;
-	subscribe(channel: string): void;
-	unsubscribe(channel: string): void;
+	channels: WebsocketChannel<I_WebsocketChannel>;
+	send(message: WebsocketStructuredMessage): any;
+	subscribe(channel: string): any;
+	joinChannel(channel: I_WebsocketChannel, send?: boolean): void;
+	leaveChannel(channel: I_WebsocketChannel, send?: boolean): void;
+	joinChannels(channels: I_WebsocketChannel[], send?: boolean): void;
+	leaveChannels(channels?: I_WebsocketChannel[], send?: boolean): void;
+	unsubscribe(channel: string): any;
 	whoami(): WebsocketClientData;
 }
 
@@ -35,12 +39,12 @@ export interface I_WebsocketChannel {
 	members: Map<string, I_WebsocketClient>;
 	metadata: Record<string, string>;
 	createdAt: Date;
-	broadcast(message: WebsocketStructuredMessage): void;
+	broadcast<T = any, U = any>(message: WebsocketStructuredMessage<U>, ...args: T[]): any;
 	hasMember(client: I_WebsocketEntity | string): boolean;
-	addMember(entity: I_WebsocketEntity): I_WebsocketClient | false;
+	addMember(entity: I_WebsocketClient): I_WebsocketClient | false;
 	removeMember(entity: I_WebsocketEntity): I_WebsocketClient | false;
 	getMember(client: I_WebsocketEntity | string): I_WebsocketClient | undefined;
-	getMembers(): I_WebsocketClient[];
+	getMembers(clients?: string[] | I_WebsocketEntity[]): I_WebsocketClient[];
 	getMetadata(): Record<string, string>;
 	getCreatedAt(): Date;
 	getId(): string;
