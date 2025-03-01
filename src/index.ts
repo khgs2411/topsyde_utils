@@ -12,6 +12,7 @@ export * from "./throwable";
 export * from "./enums";
 export * from "./server/controller";
 export * from "./server/service";
+export * from "./server/bun/router/controller-discovery";
 export * from "./server/bun/router/routes";
 export * from "./server/bun/router/router";
 export * from "./server/bun/router/router.internal";

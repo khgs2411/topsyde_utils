@@ -10,6 +10,7 @@ export enum E_WebsocketMessageType {
 	MESSAGE = "message",
 	WHISPER = "whisper",
 	BROADCAST = "broadcast",
+	PROMPT = "prompt",
 	ERROR = "error",
 	SYSTEM = "system",
 }

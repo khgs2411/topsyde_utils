@@ -48,11 +48,16 @@ class Router_Internal {
 	}
 
 	private controllerFactory(controllerKey: string): Controller {
-		if (!(controllerKey in this.routes)) throw new Throwable(`${ERROR_CODE.INVALID_CONTROLLER}: ${controllerKey}`, { logError: false });
+		try {
+			if (!(controllerKey in this.routes)) throw new Throwable(`${ERROR_CODE.INVALID_CONTROLLER}: ${controllerKey}`, { logError: false });
 
-		const ControllerClass = this.routes[controllerKey as keyof typeof this.routes];
+			const ControllerClass = this.routes[controllerKey as keyof typeof this.routes];
 
-		return new ControllerClass();
+			return new ControllerClass();
+		} catch (err) {
+			console.error("controllerFactory", err);
+			throw err;
+		}
 	}
 }
 
