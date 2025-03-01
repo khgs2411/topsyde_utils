@@ -58,6 +58,7 @@ export {
 	I_WebsocketEntity,
 	I_WebsocketClient,
 	I_WebsocketChannelEntity,
+	BroadcastOptions,
 	I_WebsocketChannel,
 	I_WebsocketInterface,
 } from "./server/bun/websocket/websocket.types";

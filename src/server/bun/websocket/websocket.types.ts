@@ -37,12 +37,38 @@ export interface I_WebsocketChannelEntity<T extends Websocket = Websocket> exten
 	ws: T;
 }
 
+// New types for the broadcast method
+export type BroadcastOptions = {
+	// Additional data to include in the message content
+	data?: any;
+
+	// Client information to include
+	client?: Partial<WebsocketEntityData> & {
+		[key: string]: any;
+	};
+
+	// Channel metadata to include (true for all, array for specific keys)
+	includeMetadata?: boolean | string[];
+
+	// Client IDs to exclude from receiving the broadcast
+	excludeClients?: string[];
+
+	// Whether to include timestamp in the message
+	includeTimestamp?: boolean;
+
+	// Custom fields to add to the root of the message
+	customFields?: Record<string, any>;
+
+	// Transform function to modify the final message before sending
+	transform?: (message: any) => any;
+};
+
 export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_WebsocketChannelEntity<T> {
 	limit: number;
 	members: Map<string, I_WebsocketClient>;
 	metadata: Record<string, string>;
 	createdAt: Date;
-	broadcast<T = any, U = any>(message: WebsocketStructuredMessage<U>, ...args: T[]): any;
+	broadcast(message: WebsocketStructuredMessage, options?: BroadcastOptions): void;
 	hasMember(client: I_WebsocketEntity | string): boolean;
 	addMember(entity: I_WebsocketClient): I_WebsocketClient | false;
 	removeMember(entity: I_WebsocketEntity): I_WebsocketClient | false;
