@@ -7,7 +7,7 @@ export type WebsocketMessage = string | Buffer<ArrayBufferLike>;
 export type WebsocketChannel<T extends I_WebsocketChannel = Channel> = Map<string, T>;
 export type WebsocketClients = Map<string, I_WebsocketClient>;
 
-export type WebsocketStructuredMessage<T = any> = {
+export type WebsocketStructuredMessage<T extends Record<string, any> = Record<string, any>> = {
 	/**
 	 * Message type identifier used for client-side routing
 	 */

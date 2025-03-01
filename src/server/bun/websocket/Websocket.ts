@@ -83,7 +83,7 @@ export default class Websocket extends Singleton {
 		if (setup && setup.message) return setup.message(ws, message);
 
 		ws.send("This is the message from the server: " + message);
-		Websocket.BraodcastAll({ type: "client.message.received", content: message });
+		Websocket.BraodcastAll({ type: "client.message.received", content: { message } });
 	};
 
 	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
@@ -92,11 +92,10 @@ export default class Websocket extends Singleton {
 		if (setup && setup.open) return setup.open(ws);
 		const global = this._channels.get("global");
 		if (!global) throw new Error("Global channel not found");
-		//TODO: handshake
 		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
 		this._clients.set(client.id, client);
-		global.addMember(client);
 		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
+		global.addMember(client);
 	};
 
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>, code: number, reason: string) => {
@@ -115,7 +114,7 @@ export default class Websocket extends Singleton {
 
 	private handleHeartbeat = (ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) => {
 		if (message === "ping") {
-			const pong: WebsocketStructuredMessage = { type: "pong", content: "pong" };
+			const pong: WebsocketStructuredMessage = { type: "pong", content: { message: "pong" } };
 			ws.send(JSON.stringify(pong));
 			return true;
 		}
