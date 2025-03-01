@@ -126,19 +126,6 @@ export type BroadcastOptions = {
 	transform?: (message: any) => any;
 
 	/**
-	 * Whether to include sender information in the message
-	 * If true, the channel's ID and name will be added as client
-	 * If an object, it will be used as the client value
-	 */
-	includeSender?:
-		| boolean
-		| {
-				id: string;
-				name?: string;
-				[key: string]: any;
-		  };
-
-	/**
 	 * Priority of the message (higher numbers = higher priority)
 	 * Can be used by clients to determine processing order
 	 */
@@ -149,6 +136,7 @@ export type BroadcastOptions = {
 	 * Can be used by clients to ignore outdated messages
 	 */
 	expiresAt?: number;
+	debug?: boolean;
 };
 
 export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_WebsocketChannelEntity<T> {

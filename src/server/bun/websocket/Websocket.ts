@@ -16,11 +16,16 @@ import type {
 } from "./websocket.types";
 import { E_WebsocketMessageType } from "./websocket.enums";
 
+export type WebsocketConstructorOptions = {
+	debug?: boolean;
+};
+
 export interface I_WebsocketConstructor {
 	ws_interface?: I_WebsocketInterface;
 	channels?: WebsocketChannel;
 	clientClass?: typeof Client;
 	channelClass?: typeof Channel;
+	options?: WebsocketConstructorOptions;
 }
 
 export default class Websocket extends Singleton {
@@ -30,12 +35,14 @@ export default class Websocket extends Singleton {
 	protected _channelClass: typeof Channel;
 	protected _clientClass: typeof Client;
 	protected _ws_interface?: I_WebsocketInterface;
+	protected _options: WebsocketConstructorOptions;
 	protected constructor(options?: I_WebsocketConstructor) {
 		super();
 		this._ws_interface = options?.ws_interface;
 		this._channels = options?.channels ?? new Map<string, Channel>();
 		this._clientClass = options?.clientClass ?? Client;
 		this._channelClass = options?.channelClass ?? Channel.GetChannelType(options?.channels);
+		this._options = options?.options ?? { debug: false };
 		this.createChannel("global", "Global", 1000);
 	}
 
@@ -87,7 +94,7 @@ export default class Websocket extends Singleton {
 	};
 
 	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
-		Lib.Log("Client connected", ws.data);
+		if (this._options.debug) Lib.Log("Client connected", ws.data);
 		const setup = this._ws_interface?.setup(this._channels, this._clients);
 		if (setup && setup.open) return setup.open(ws);
 		const global = this._channels.get("global");
@@ -99,7 +106,7 @@ export default class Websocket extends Singleton {
 	};
 
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>, code: number, reason: string) => {
-		Lib.Log("Client disconnected", ws.data);
+		if (this._options.debug) Lib.Log("Client disconnected", ws.data);
 		const setup = this._ws_interface?.setup(this._channels, this._clients);
 		if (setup && setup.close) return setup.close(ws, code, reason);
 

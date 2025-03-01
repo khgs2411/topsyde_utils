@@ -3,16 +3,18 @@ import Lib from "./Lib";
 
 class Guards {
 	public static IsString(value: any): value is string;
-	public static IsString(value: any, excludeNull: true): value is NonNullableType<string>;
-	public static IsString(value: any, excludeNull = false): value is string | NonNullableType<string> {
-		const output = Lib.IsString(value);
+	public static IsString(value: any, as_typeof: boolean): value is NonNullableType<string>;
+	public static IsString(value: any, as_typeof: boolean, excludeNull: true): value is NonNullableType<string>;
+	public static IsString(value: any, as_typeof: boolean = false, excludeNull = false): value is string | NonNullableType<string> {
+		const output = Lib.IsString(value, as_typeof);
 		return excludeNull ? !Guards.IsNil(value) && output : output;
 	}
 
 	public static IsNumber(value: any): value is number;
-	public static IsNumber(value: any, excludeNull: true): value is NonNullableType<number>;
-	public static IsNumber(value: any, excludeNull = false): value is number | NonNullableType<number> {
-		const output = Lib.IsNumber(value);
+	public static IsNumber(value: any, as_typeof: boolean): value is NonNullableType<number>;
+	public static IsNumber(value: any, as_typeof: boolean, excludeNull: true): value is NonNullableType<number>;
+	public static IsNumber(value: any, as_typeof: boolean = false, excludeNull = false): value is number | NonNullableType<number> {
+		const output = Lib.IsNumber(value, as_typeof);
 		return excludeNull ? !Guards.IsNil(value) && output : output;
 	}
 

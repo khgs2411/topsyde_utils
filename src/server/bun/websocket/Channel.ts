@@ -1,4 +1,4 @@
-import { Lib } from "../../../utils";
+import { Guards, Lib } from "../../../utils";
 import Websocket from "./Websocket";
 import type {
 	BroadcastOptions,
@@ -27,7 +27,6 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		this.members = members ?? new Map();
 		this.metadata = metadata ?? {};
 		this.ws = ws;
-		// Initialize message template
 		this.messageTemplate = {
 			type: "",
 			content: {},
@@ -39,11 +38,10 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	public broadcast(message: WebsocketStructuredMessage, options?: BroadcastOptions) {
 		// Clone the template (faster than creating new objects)
 		const output = Object.assign({}, this.messageTemplate);
-
+		const debug = options?.debug ?? false;
 		// Set the dynamic properties in a single pass
 		output.type = message.type;
 		output.channel = this.id;
-
 		// Process message content based on type
 		if (typeof message.content === "string") {
 			output.content = { message: message.content };
@@ -53,6 +51,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			output.content = {};
 		}
 
+		if (debug) console.log("Channel- Options: ", options);
 		// Process options in a single pass if provided
 		if (options) {
 			// Add data if provided
@@ -65,11 +64,21 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 					output.content.data = options.data;
 				}
 			}
-
+			if (debug)
+				console.log(
+					"Channel- Client data: ",
+					options.client,
+					Guards.IsObject(options.client),
+					Guards.IsString(options.client?.id, true),
+				);
 			// Add client information if provided
-			if (options.client) {
-				output.content.client = options.client;
+			if (options.client && Guards.IsObject(options.client) && Guards.IsString(options.client.id, true)) {
+				output.client = {
+					id: options.client.id,
+					name: options.client.name,
+				};
 			}
+			if (debug) console.log("Channel- Client: ", output.client);
 
 			// Include channel metadata if requested
 			if (options.includeMetadata) {
@@ -82,20 +91,6 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			} else {
 				// Remove timestamp if explicitly disabled
 				delete output.timestamp;
-			}
-
-			// Add sender information if requested
-			if (options.includeSender) {
-				if (typeof options.includeSender === "boolean") {
-					// Use channel as client
-					output.client = {
-						id: this.id,
-						name: this.name,
-					};
-				} else {
-					// Use provided sender object as client
-					output.client = options.includeSender;
-				}
 			}
 
 			// Add priority if specified
@@ -139,8 +134,8 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			// Default timestamp behavior when no options provided
 			output.timestamp = new Date().toISOString();
 		}
-
 		// Publish to the channel
+		if (debug) console.log("Channel- Output: ", output);
 		this.ws.server.publish(this.id, JSON.stringify(output));
 	}
 

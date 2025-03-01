@@ -257,12 +257,12 @@ class Lib {
 		return this.GetType(variable) === E_IS.ARRAY;
 	}
 
-	public static IsString(variable: any): boolean {
-		return this.GetType(variable) === E_IS.STRING;
+	public static IsString(variable: any, as_typeof: boolean = false): boolean {
+		return this.GetType(variable, as_typeof) === E_IS.STRING;
 	}
 
-	public static IsNumber(variable: any): boolean {
-		return this.GetType(variable) === E_IS.NUMBER;
+	public static IsNumber(variable: any, as_typeof: boolean = false): boolean {
+		return this.GetType(variable, as_typeof) === E_IS.NUMBER;
 	}
 
 	public static IsObject(variable: any): boolean {
@@ -460,6 +460,10 @@ class Lib {
 
 	public static ToKebebCase(str: string): string {
 		return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+	}
+
+	public static ToPascalCase(str: string): string {
+		return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => (index === 0 ? word.toUpperCase() : word.toLowerCase())).replace(/\s+/g, "");
 	}
 }
 

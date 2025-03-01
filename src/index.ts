@@ -50,7 +50,7 @@ export { ClassConstructor, NonNullableType, ObjectKeys, KVObj, I_ApplicationResp
 export { E_IS, E_ENVIRONMENTS } from "./enums";
 export { ControllerResponse, ControllerAction, ControllerMap, ControllerOptions } from "./server/controller";
 export { Routes } from "./server/bun/router/routes";
-export { I_WebsocketConstructor } from "./server/bun/websocket/Websocket";
+export { WebsocketConstructorOptions, I_WebsocketConstructor } from "./server/bun/websocket/Websocket";
 export { E_WebsocketMessageType, E_WebsocketMessagePriority } from "./server/bun/websocket/websocket.enums";
 export {
 	WebsocketMessage,

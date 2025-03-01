@@ -282,7 +282,7 @@ describe("Singleton", () => {
 
 		// Verify that broadcast uses our custom implementation
 		const spy = jest.spyOn(console, "log");
-		newChannel.broadcast({ type: "test", content: "test message" });
+		newChannel.broadcast({ type: "test", content: { message: "test message" } });
 		expect(spy).toHaveBeenCalledWith("CONSOLE LOG");
 		spy.mockRestore();
 
@@ -316,7 +316,7 @@ describe("Singleton", () => {
 
 		// Verify that broadcast uses our custom implementation
 		const spy = jest.spyOn(console, "log");
-		newChannel.broadcast({ type: "test", content: "test message" });
+		newChannel.broadcast({ type: "test", content: { message: "test message" } });
 		expect(spy).toHaveBeenCalledWith("CONSOLE LOG");
 		spy.mockRestore();
 
@@ -336,8 +336,7 @@ describe("Singleton", () => {
 		class GameChannel<T extends app.Websocket = GameWebsocket> extends Channel<T> {
 			public override broadcast(message: WebsocketStructuredMessage, options?: BroadcastOptions): void {
 				// Log the message and options for testing
-				console.log("BLUE", message);
-				
+				console.log("GameChannel");
 				// Call the parent implementation
 				super.broadcast(message, options);
 			}
@@ -364,31 +363,40 @@ describe("Singleton", () => {
 
 		// Test broadcast
 		const spy = jest.spyOn(console, "log");
-		const message = { type: "test", content: "test message" };
+		const message = { type: "test", content: { message: "test message" } };
 		const extraData = { param1: "param1", extra: { data: "data" } };
 
 		// Call broadcast with the new options-based API
-		channel.broadcast(message, { data: extraData });
+		channel.broadcast(message, { data: extraData, client: { id: "test", name: "Test Client" } });
 
 		// Verify console.log was called
 		expect(spy).toHaveBeenCalled();
 
 		// Verify server publish was called correctly
-		expect(mockPublish).toHaveBeenCalledWith(
-			channel.id,
-			expect.any(String)
-		);
+		expect(mockPublish).toHaveBeenCalledWith(channel.id, expect.any(String));
 
 		// Verify the JSON structure
 		const lastCall = mockPublish.mock.calls[0];
 		const parsedJson = JSON.parse(lastCall[1]);
-		console.log("ACTUAL JSON STRUCTURE:", parsedJson);
-		
+
 		// Update expectations to match actual structure - we don't care about exact format
 		// as long as it contains the message
-		expect(parsedJson).toHaveProperty('type', message.type);
-		expect(parsedJson).toHaveProperty('channel', channel.id);
+		expect(parsedJson).toHaveProperty("type", message.type);
+		expect(parsedJson).toHaveProperty("channel", channel.id);
 
 		spy.mockRestore();
+	});
+	it("should make sure broadcast structured message is correct", () => {
+		const mockPublish = jest.fn();
+		const server = {
+			publish: mockPublish,
+		} as unknown as Server;
+		const ws = app.Websocket.GetInstance<app.Websocket>();
+		ws.set(server);
+
+		const channel = ws.createChannel("test", "Test Channel");
+		const message = { type: "test", content: { message: "test message" },  };
+		channel.broadcast(message, { debug: true, client: { id: "test", name: "Test Client" } });
+		expect(mockPublish).toHaveBeenCalledWith(channel.id, expect.any(String));
 	});
 });

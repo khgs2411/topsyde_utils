@@ -8,7 +8,7 @@
 			"group": "test",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -20,8 +20,9 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
+
 			},
 			"problemMatcher": []
 		},
@@ -32,7 +33,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -44,7 +45,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -56,7 +57,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -68,7 +69,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -80,7 +81,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -92,7 +93,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -104,7 +105,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -116,7 +117,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -128,7 +129,7 @@
 			"group": "build",
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
@@ -143,7 +144,7 @@
 			},
 			"presentation": {
 				"reveal": "always",
-				"panel": "new",
+				"panel": "shared",
 				"focus": true
 			},
 			"problemMatcher": []
