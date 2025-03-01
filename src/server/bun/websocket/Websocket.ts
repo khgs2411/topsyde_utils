@@ -11,7 +11,7 @@ import type {
 	I_WebsocketInterface,
 	WebsocketChannel,
 	WebsocketEntityData,
-	WebsocketMessage,
+	BunWebsocketMessage,
 	WebsocketStructuredMessage,
 } from "./websocket.types";
 import { E_WebsocketMessageType } from "./websocket.enums";
@@ -83,7 +83,7 @@ export default class Websocket extends Singleton {
 		};
 	}
 
-	private clientMessageReceived = (ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) => {
+	private clientMessageReceived = (ws: ServerWebSocket<WebsocketEntityData>, message: BunWebsocketMessage) => {
 		if (Websocket.Heartbeat(ws, message)) return;
 
 		const setup = this._ws_interface?.setup(this._channels, this._clients);
@@ -119,7 +119,7 @@ export default class Websocket extends Singleton {
 		this._clients.delete(ws.data.id);
 	};
 
-	private handleHeartbeat = (ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) => {
+	private handleHeartbeat = (ws: ServerWebSocket<WebsocketEntityData>, message: BunWebsocketMessage) => {
 		if (message === "ping") {
 			const pong: WebsocketStructuredMessage = { type: "pong", content: { message: "pong" } };
 			ws.send(JSON.stringify(pong));
@@ -132,7 +132,7 @@ export default class Websocket extends Singleton {
 		return new this._clientClass(entity);
 	}
 
-	public static Heartbeat(ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) {
+	public static Heartbeat(ws: ServerWebSocket<WebsocketEntityData>, message: BunWebsocketMessage) {
 		const self = this.GetInstance<Websocket>();
 		return self.handleHeartbeat(ws, message);
 	}
@@ -202,5 +202,13 @@ export default class Websocket extends Singleton {
 	public static CreateClient(entity: I_WebsocketEntity): I_WebsocketClient {
 		const ws = this.GetInstance<Websocket>();
 		return ws.createClient(entity);
+	}
+
+	public static GenerateMessage(): WebsocketStructuredMessage {
+		const msg: WebsocketStructuredMessage = {
+			type: "",
+			content: {}
+		}
+		return msg;
 	}
 }

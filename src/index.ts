@@ -54,7 +54,7 @@ export { Routes } from "./server/bun/router/routes";
 export { WebsocketConstructorOptions, I_WebsocketConstructor } from "./server/bun/websocket/Websocket";
 export { E_WebsocketMessageType, E_WebsocketMessagePriority } from "./server/bun/websocket/websocket.enums";
 export {
-	WebsocketMessage,
+	BunWebsocketMessage as WebsocketMessage,
 	WebsocketChannel,
 	WebsocketClients,
 	WebsocketStructuredMessage,

@@ -1,4 +1,5 @@
 import { Guards, Lib } from "../../../utils";
+import Message from "./Message";
 import Websocket from "./Websocket";
 import type {
 	BroadcastOptions,
@@ -6,6 +7,7 @@ import type {
 	I_WebsocketClient,
 	I_WebsocketEntity,
 	WebsocketChannel,
+	WebsocketMessage,
 	WebsocketStructuredMessage,
 } from "./websocket.types";
 
@@ -19,6 +21,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	public ws: T;
 	// Message template for reuse
 	private messageTemplate: WebsocketStructuredMessage<any>;
+	private message: Message;
 
 	constructor(id: string, name: string, ws: T, limit?: number, members?: Map<string, I_WebsocketClient>, metadata?: Record<string, string>) {
 		this.id = id;
@@ -27,6 +30,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		this.members = members ?? new Map();
 		this.metadata = metadata ?? {};
 		this.ws = ws;
+		this.message = new Message();
 		this.messageTemplate = {
 			type: "",
 			content: {},
@@ -35,85 +39,13 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		};
 	}
 
-	public broadcast(message: WebsocketStructuredMessage, options?: BroadcastOptions) {
-		// Clone the template (faster than creating new objects)
-		const output = Object.assign({}, this.messageTemplate);
-		const debug = options?.debug ?? false;
-		// Set the dynamic properties in a single pass
-		output.type = message.type;
-		output.channel = this.id;
-		// Process message content based on type
-		if (typeof message.content === "string") {
-			output.content = { message: message.content };
-		} else if (typeof message.content === "object" && message.content !== null) {
-			output.content = { ...message.content };
-		} else {
-			output.content = {};
-		}
-
-		if (debug) console.log("Channel- Options: ", options);
-		// Process options in a single pass if provided
+	public broadcast(message: WebsocketMessage, options?: BroadcastOptions) {
+		const output = this.message.create(message, { ...options, channel: this.id });
 		if (options) {
-			// Add data if provided
-			if (options.data !== undefined) {
-				if (typeof options.data === "object" && options.data !== null && !Array.isArray(options.data)) {
-					// Merge object data with content
-					Object.assign(output.content, options.data);
-				} else {
-					// Set as data property for other types
-					output.content.data = options.data;
-				}
-			}
-			if (debug)
-				console.log(
-					"Channel- Client data: ",
-					options.client,
-					Guards.IsObject(options.client),
-					Guards.IsString(options.client?.id, true),
-				);
-			// Add client information if provided
-			if (options.client && Guards.IsObject(options.client) && Guards.IsString(options.client.id, true)) {
-				output.client = {
-					id: options.client.id,
-					name: options.client.name,
-				};
-			}
-			if (debug) console.log("Channel- Client: ", output.client);
 
 			// Include channel metadata if requested
 			if (options.includeMetadata) {
 				output.metadata = options.includeMetadata === true ? this.getMetadata() : this.getFilteredMetadata(options.includeMetadata);
-			}
-
-			// Add timestamp if requested (default: true)
-			if (options.includeTimestamp !== false) {
-				output.timestamp = new Date().toISOString();
-			} else {
-				// Remove timestamp if explicitly disabled
-				delete output.timestamp;
-			}
-
-			// Add priority if specified
-			if (options.priority !== undefined) {
-				output.priority = options.priority;
-			}
-
-			// Add expiration if specified
-			if (options.expiresAt !== undefined) {
-				output.expiresAt = options.expiresAt;
-			}
-
-			// Add any custom fields to the root of the message
-			if (options.customFields) {
-				Object.assign(output, options.customFields);
-			}
-
-			// Apply custom transformation if provided
-			if (options.transform) {
-				const transformed = options.transform(output);
-				// Publish the transformed output
-				this.ws.server.publish(this.id, JSON.stringify(transformed));
-				return;
 			}
 
 			// Handle excluded clients if needed
@@ -121,7 +53,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 				// For large channels with many excluded clients, it might be more efficient
 				// to send directly to each client instead of using channel publish
 				if (this.members.size > 10 && options.excludeClients.length > this.members.size / 3) {
-					const serializedMessage = JSON.stringify(output);
+					const serializedMessage = this.message.serialize(output);
 					for (const [clientId, client] of this.members) {
 						if (!options.excludeClients.includes(clientId)) {
 							client.ws.send(serializedMessage);
@@ -130,13 +62,9 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 					return;
 				}
 			}
-		} else {
-			// Default timestamp behavior when no options provided
-			output.timestamp = new Date().toISOString();
 		}
 		// Publish to the channel
-		if (debug) console.log("Channel- Output: ", output);
-		this.ws.server.publish(this.id, JSON.stringify(output));
+		this.ws.server.publish(this.id, this.message.serialize(output));
 	}
 
 	// Helper method for filtered metadata

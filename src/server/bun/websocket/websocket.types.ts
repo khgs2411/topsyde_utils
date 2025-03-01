@@ -2,83 +2,11 @@ import { ServerWebSocket, WebSocketHandler } from "bun";
 import Channel from "./Channel";
 import Websocket from "./Websocket";
 
-export type WebsocketMessage = string | Buffer<ArrayBufferLike>;
+export type BunWebsocketMessage = string | Buffer<ArrayBufferLike>;
 
 export type WebsocketChannel<T extends I_WebsocketChannel = Channel> = Map<string, T>;
 export type WebsocketClients = Map<string, I_WebsocketClient>;
-
-export type WebsocketStructuredMessage<T extends Record<string, any> = Record<string, any>> = {
-	/**
-	 * Message type identifier used for client-side routing
-	 */
-	type: string;
-
-	/**
-	 * Message content - can be any data structure
-	 * If a string is provided, it will be wrapped in {message: string}
-	 */
-	content: T;
-
-	/**
-	 * Optional channel identifier
-	 * If not provided, the channel ID will be added automatically during broadcast
-	 */
-	channel?: string;
-
-	/**
-	 * Optional metadata key-value pairs
-	 * Can be used to add additional context to the message
-	 */
-	metadata?: Record<string, string>;
-
-	/**
-	 * Optional timestamp
-	 * If not provided, it will be added automatically during broadcast
-	 */
-	timestamp?: string;
-
-	/**
-	 * Optional sender information
-	 * Can be used to identify the source of the message
-	 */
-	client?: {
-		id: string;
-		name?: string;
-		[key: string]: any;
-	};
-
-	/**
-	 * Any additional custom fields
-	 */
-	[key: string]: any;
-};
-
-export type WebsocketEntityId = string;
-export type WebsocketEntityName = string;
-export type WebsocketEntityData = { id: WebsocketEntityId; name: WebsocketEntityName };
-
-export interface I_WebsocketEntity extends WebsocketEntityData {
-	ws: ServerWebSocket<WebsocketEntityData>;
-}
-
-export interface I_WebsocketClient extends I_WebsocketEntity {
-	channels: WebsocketChannel<I_WebsocketChannel>;
-	send(message: WebsocketStructuredMessage): any;
-	subscribe(channel: string): any;
-	joinChannel(channel: I_WebsocketChannel, send?: boolean): void;
-	leaveChannel(channel: I_WebsocketChannel, send?: boolean): void;
-	joinChannels(channels: I_WebsocketChannel[], send?: boolean): void;
-	leaveChannels(channels?: I_WebsocketChannel[], send?: boolean): void;
-	unsubscribe(channel: string): any;
-	whoami(): WebsocketEntityData;
-}
-
-export interface I_WebsocketChannelEntity<T extends Websocket = Websocket> extends WebsocketEntityData {
-	ws: T;
-}
-
-// New types for the broadcast method
-export type BroadcastOptions = {
+export type WebsocketMessageOptions = {
 	/**
 	 * Additional data to include in the message content
 	 * If an object is provided, it will be merged with the content
@@ -106,6 +34,12 @@ export type BroadcastOptions = {
 	 * Useful for sending messages to all clients except the sender
 	 */
 	excludeClients?: string[];
+
+	/**
+	 * Channel to include in the message
+	 * Defaults to the channel of the message
+	 */
+	channel?: string;
 
 	/**
 	 * Whether to include timestamp in the message
@@ -136,9 +70,64 @@ export type BroadcastOptions = {
 	 * Can be used by clients to ignore outdated messages
 	 */
 	expiresAt?: number;
-	debug?: boolean;
+
+	/**
+	 * Metadata to include in the message
+	 * If an array of strings, only the specified keys will be included
+	 */
+	metadata?: boolean | string[] | Record<string, string>;
 };
 
+export type WebsocketMessage<T extends Record<string, any> = Record<string, any>> = {
+	/**
+	 * Message type identifier used for client-side routing
+	 */
+	type: string;
+	/**
+	 * Message content - can be any data structure
+	 * If a string is provided, it will be wrapped in {message: string}
+	 */
+	content: T;
+	/**
+	 * Channel ID
+	 */
+	channel?: string;
+	/**
+	 * Any additional custom fields
+	 */
+	[key: string]: any;
+};
+
+export type WebsocketStructuredMessage<T extends Record<string, any> = Record<string, any>> = WebsocketMessage<T> & WebsocketMessageOptions;
+
+export type WebsocketEntityId = string;
+export type WebsocketEntityName = string;
+export type WebsocketEntityData = { id: WebsocketEntityId; name: WebsocketEntityName };
+
+export interface I_WebsocketEntity extends WebsocketEntityData {
+	ws: ServerWebSocket<WebsocketEntityData>;
+}
+
+export interface I_WebsocketClient extends I_WebsocketEntity {
+	channels: WebsocketChannel<I_WebsocketChannel>;
+	send(message: WebsocketStructuredMessage): any;
+	subscribe(channel: string): any;
+	joinChannel(channel: I_WebsocketChannel, send?: boolean): void;
+	leaveChannel(channel: I_WebsocketChannel, send?: boolean): void;
+	joinChannels(channels: I_WebsocketChannel[], send?: boolean): void;
+	leaveChannels(channels?: I_WebsocketChannel[], send?: boolean): void;
+	unsubscribe(channel: string): any;
+	whoami(): WebsocketEntityData;
+}
+
+export interface I_WebsocketChannelEntity<T extends Websocket = Websocket> extends WebsocketEntityData {
+	ws: T;
+}
+
+// New types for the broadcast method
+export type BroadcastOptions = WebsocketMessageOptions & {
+	debug?: boolean;
+};
 export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_WebsocketChannelEntity<T> {
 	limit: number;
 	members: Map<string, I_WebsocketClient>;
