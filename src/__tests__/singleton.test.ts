@@ -272,7 +272,7 @@ describe("Singleton", () => {
 		const customChannels = new Map<string, CustomChannel>();
 		customChannels.set("custom_channel", new CustomChannel("custom_channel", "Test Channel", 5));
 		// Create a new Websocket instance with our custom channels
-		const ws = app.Websocket.GetInstance<app.Websocket>(undefined, customChannels);
+		const ws = app.Websocket.GetInstance<app.Websocket>({ channels: customChannels });
 
 		// Create a new channel - it should be a CustomChannel instance
 		const newChannel = ws.createChannel("test", "Test Channel", 5);
