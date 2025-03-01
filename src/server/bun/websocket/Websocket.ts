@@ -10,7 +10,7 @@ import type {
 	I_WebsocketEntity,
 	I_WebsocketInterface,
 	WebsocketChannel,
-	WebsocketClientData,
+	WebsocketEntityData,
 	WebsocketMessage,
 	WebsocketStructuredMessage,
 } from "./websocket.types";
@@ -54,7 +54,7 @@ export default class Websocket extends Singleton {
 
 	public createChannel(id: string, name: string, limit?: number): I_WebsocketChannel {
 		if (this._channels.has(id)) return this._channels.get(id) as I_WebsocketChannel;
-		const channel = new this._channelClass(id, name, limit);
+		const channel = new this._channelClass(id, name, this, limit);
 		this._channels.set(id, channel);
 		return channel;
 	}
@@ -68,7 +68,7 @@ export default class Websocket extends Singleton {
 		return ws.createChannel(id, name, limit);
 	}
 
-	public setup(): WebSocketHandler<WebsocketClientData> {
+	public setup(): WebSocketHandler<WebsocketEntityData> {
 		return {
 			open: this.clientConnected,
 			message: this.clientMessageReceived,
@@ -76,7 +76,7 @@ export default class Websocket extends Singleton {
 		};
 	}
 
-	private clientMessageReceived = (ws: ServerWebSocket<WebsocketClientData>, message: WebsocketMessage) => {
+	private clientMessageReceived = (ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) => {
 		if (Websocket.Heartbeat(ws, message)) return;
 
 		const setup = this._ws_interface?.setup(this._channels);
@@ -86,7 +86,7 @@ export default class Websocket extends Singleton {
 		Websocket.BraodcastAll({ type: "client.message.received", content: message });
 	};
 
-	private handleHeartbeat = (ws: ServerWebSocket<WebsocketClientData>, message: WebsocketMessage) => {
+	private handleHeartbeat = (ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) => {
 		if (message === "ping") {
 			const pong: WebsocketStructuredMessage = { type: "pong", content: "pong" };
 			ws.send(JSON.stringify(pong));
@@ -95,7 +95,7 @@ export default class Websocket extends Singleton {
 		return false;
 	};
 
-	private clientConnected = (ws: ServerWebSocket<WebsocketClientData>) => {
+	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
 		const global = this._channels.get("global");
 		if (!global) throw new Error("Global channel not found");
 
@@ -105,7 +105,7 @@ export default class Websocket extends Singleton {
 		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { client: client.whoami() } });
 	};
 
-	private clientDisconnected = (ws: ServerWebSocket<WebsocketClientData>) => {
+	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
 		Lib.Log("WebSocket connection closed");
 		const client = this._clients.get(ws.data.id);
 		if (!client) return;
@@ -120,7 +120,7 @@ export default class Websocket extends Singleton {
 		return new this._clientClass(entity);
 	}
 
-	public static Heartbeat(ws: ServerWebSocket<WebsocketClientData>, message: WebsocketMessage) {
+	public static Heartbeat(ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) {
 		const self = this.GetInstance<Websocket>();
 		return self.handleHeartbeat(ws, message);
 	}
@@ -131,7 +131,7 @@ export default class Websocket extends Singleton {
 
 	public static Broadcast(channel: string, message: WebsocketStructuredMessage, ...args: any[]) {
 		// Get the server from the singleton instance
-		const ws = Websocket.GetInstance<Websocket>();
+		const ws = this.GetInstance<Websocket>();
 		if (!ws.server) {
 			throw new Error("Websocket server not set");
 		}

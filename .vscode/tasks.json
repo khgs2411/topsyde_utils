@@ -1,144 +1,154 @@
 {
   "version": "2.0.0",
   "tasks": [
-    {
-      "label": "Release: Patch",
-      "type": "shell",
-      "command": "bun run release",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Release: Minor",
-      "type": "shell",
-      "command": "bun run release minor",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Release: Major",
-      "type": "shell",
-      "command": "bun run release major",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Release: Custom Tag",
-      "type": "shell",
-      "command": "bun run release ${input:releaseType} ${input:tagName}",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Release: Dry Run",
-      "type": "shell",
-      "command": "bun run release --dry-run",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Release: Test Publish",
-      "type": "shell",
-      "command": "bun run release --test-publish",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Release: Beta",
-      "type": "shell",
-      "command": "bun run release patch beta",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Release: Alpha",
-      "type": "shell",
-      "command": "bun run release patch alpha",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Generate Indexes",
-      "type": "shell",
-      "command": "bun run generate-indexes",
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Build",
-      "type": "shell",
-      "command": "bun run build",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Test",
-      "type": "shell",
-      "command": "bun test",
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true
-      },
-      "problemMatcher": []
-    }
+		{
+			"label": "Bun Test",
+			"type": "shell",
+			"command": "bun run test",
+			"group": "test",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Release",
+			"type": "shell",
+			"command": "echo 'y' | bun run release",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Patch",
+			"type": "shell",
+			"command": "bun run release",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Minor",
+			"type": "shell",
+			"command": "bun run release minor",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Major",
+			"type": "shell",
+			"command": "bun run release major",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Custom Tag",
+			"type": "shell",
+			"command": "bun run release ${input:releaseType} ${input:tagName}",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Dry Run",
+			"type": "shell",
+			"command": "bun run release --dry-run",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Test Publish",
+			"type": "shell",
+			"command": "bun run release --test-publish",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Beta",
+			"type": "shell",
+			"command": "bun run release patch beta",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Release: Alpha",
+			"type": "shell",
+			"command": "bun run release patch alpha",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Generate Indexes",
+			"type": "shell",
+			"command": "bun run generate-indexes",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Build",
+			"type": "shell",
+			"command": "bun run build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			},
+			"problemMatcher": []
+		},
+	
   ],
   "inputs": [
     {

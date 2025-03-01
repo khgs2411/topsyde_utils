@@ -3,6 +3,7 @@ import Channel from "../server/bun/websocket/Channel";
 import { WebsocketStructuredMessage } from "../server/bun/websocket/websocket.types";
 import * as app from "../server/bun/websocket";
 import { Client } from "../server/bun/websocket";
+import { Server } from "bun";
 
 // Base class that extends Singleton
 class BaseClass extends Singleton {
@@ -270,10 +271,10 @@ describe("Singleton", () => {
 		}
 
 		// Create a map with our custom channel
-		const customChannels = new Map<string, CustomChannel>();
-		customChannels.set("custom_channel", new CustomChannel("custom_channel", "Test Channel", 5));
 		// Create a new Websocket instance with our custom channels
-		const ws = app.Websocket.GetInstance<app.Websocket>({ channels: customChannels });
+		const ws = app.Websocket.GetInstance<app.Websocket>({
+			channelClass: CustomChannel, // Explicitly set the channel class
+		});
 
 		// Create a new channel - it should be a CustomChannel instance
 		const newChannel = ws.createChannel("test", "Test Channel", 5);
@@ -324,4 +325,71 @@ describe("Singleton", () => {
 		expect(globalChannel).toBeInstanceOf(CustomChannel);
 	});
 
+	it("should handle derived channel broadcast with server correctly", () => {
+		// Mock server setup
+		const mockPublish = jest.fn();
+		const server = {
+			publish: mockPublish,
+		} as unknown as Server;
+
+		// Create derived channel class
+		class GameChannel<T extends app.Websocket = GameWebsocket> extends Channel<T> {
+			public override broadcast<T>(message: WebsocketStructuredMessage, ...args: T[]): void {
+				console.log("BLUE", { ...message, ...args });
+				super.broadcast(message, ...args);
+			}
+		}
+
+		class GameWebsocket extends app.Websocket {
+			constructor() {
+				super({
+					channelClass: GameChannel,
+				});
+			}
+		}
+
+		// Create and configure the Websocket instance
+		const ws = GameWebsocket.GetInstance<GameWebsocket>({
+			channelClass: GameChannel,
+		});
+
+		ws.set(server);
+
+		// Create and test channel
+		const channel = ws.createChannel("game", "Game Channel");
+		expect(channel).toBeInstanceOf(GameChannel);
+
+		// Test broadcast
+		const spy = jest.spyOn(console, "log");
+		const message = { type: "test", content: "test message" };
+		const args = ["param1", { extra: "data" }];
+
+		channel.broadcast(message, ...args);
+
+		// Verify console.log was called with correct data
+		expect(spy).toHaveBeenCalledWith("BLUE", {
+			...message,
+			...args,
+		});
+
+		// Verify server publish was called correctly
+		expect(mockPublish).toHaveBeenCalledWith(
+			channel.id,
+			expect.any(String)
+		);
+
+		// Verify the JSON structure
+		const lastCall = mockPublish.mock.calls[0];
+		const parsedJson = JSON.parse(lastCall[1]);
+		console.log("ACTUAL JSON STRUCTURE:", parsedJson);
+		
+		// Update expectations to match actual structure
+		expect(parsedJson).toEqual({
+			"0": args[0],
+			"1": args[1],
+			message
+		});
+
+		spy.mockRestore();
+	});
 });

@@ -2,24 +2,26 @@ import { Lib } from "../../../utils";
 import Websocket from "./Websocket";
 import type { I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketChannel, WebsocketStructuredMessage } from "./websocket.types";
 
-export default class Channel implements I_WebsocketChannel {
+export default class Channel<T extends Websocket = Websocket> implements I_WebsocketChannel<T> {
 	public createdAt: Date = new Date();
 	public id: string;
 	public name: string;
 	public limit: number;
 	public members: Map<string, I_WebsocketClient>;
 	public metadata: Record<string, string>;
+	public ws: T;
 
-	constructor(id: string, name: string, limit?: number, members?: Map<string, I_WebsocketClient>, metadata?: Record<string, string>) {
+	constructor(id: string, name: string, ws: T, limit?: number, members?: Map<string, I_WebsocketClient>, metadata?: Record<string, string>) {
 		this.id = id;
 		this.name = name;
 		this.limit = limit ?? 5;
 		this.members = members ?? new Map();
 		this.metadata = metadata ?? {};
+		this.ws = ws;
 	}
 
 	public broadcast<T = any>(message: WebsocketStructuredMessage, ...args: T[]) {
-		Websocket.Broadcast(this.id, message, ...args);
+		this.ws.server.publish(this.id, JSON.stringify({ message, ...args }));
 	}
 
 	public hasMember(client: I_WebsocketEntity | string) {

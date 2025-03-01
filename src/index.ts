@@ -54,9 +54,10 @@ export {
 	WebsocketMessage,
 	WebsocketChannel,
 	WebsocketStructuredMessage,
-	WebsocketClientData,
+	WebsocketEntityData,
 	I_WebsocketEntity,
 	I_WebsocketClient,
+	I_WebsocketChannelEntity,
 	I_WebsocketChannel,
 	I_WebsocketInterface,
 } from "./server/bun/websocket/websocket.types";

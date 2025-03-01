@@ -1,19 +1,19 @@
 import { ServerWebSocket } from "bun";
-import type { I_WebsocketClient, WebsocketClientData, WebsocketChannel, WebsocketStructuredMessage, I_WebsocketEntity, I_WebsocketChannel } from "./websocket.types";
+import type { I_WebsocketClient, WebsocketEntityData, WebsocketChannel, WebsocketStructuredMessage, I_WebsocketEntity, I_WebsocketChannel } from "./websocket.types";
 import { E_WebsocketMessageType } from "./websocket.enums";
 import { Lib } from "../../../utils";
 
 export default class Client implements I_WebsocketClient {
 	private _id: string;
 	private _name: string;
-	private _ws: ServerWebSocket<WebsocketClientData>;
+	private _ws: ServerWebSocket<WebsocketEntityData>;
 	private _channels: WebsocketChannel<I_WebsocketChannel>;
 
-	private set ws(value: ServerWebSocket<WebsocketClientData>) {
+	private set ws(value: ServerWebSocket<WebsocketEntityData>) {
 		this._ws = value;
 	}
 
-	public get ws(): ServerWebSocket<WebsocketClientData> {
+	public get ws(): ServerWebSocket<WebsocketEntityData> {
 		return this._ws;
 	}
 
