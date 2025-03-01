@@ -53,14 +53,14 @@ export default class Client implements I_WebsocketClient {
 		const channel_id = channel.getId();
 		this.subscribe(channel_id);
 		this.channels.set(channel_id, channel);
-		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_JOIN_CHANNEL, content: { channel_id } });
+		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_JOIN_CHANNEL, content: { message: "Welcome to the channel", channel_id } });
 	}
 
 	public leaveChannel(channel: I_WebsocketChannel, send: boolean = true) {
 		const channel_id = channel.getId();
 		this.channels.delete(channel_id);
 		this.unsubscribe(channel_id);
-		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_LEAVE_CHANNEL, content: { channel_id } });
+		if (send) this.send({ type: E_WebsocketMessageType.CLIENT_LEAVE_CHANNEL, content: { message: "Left the channel", channel_id } });
 	}
 
 	public joinChannels(channels: I_WebsocketChannel[], send: boolean = true) {

@@ -79,11 +79,38 @@ export default class Websocket extends Singleton {
 	private clientMessageReceived = (ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) => {
 		if (Websocket.Heartbeat(ws, message)) return;
 
-		const setup = this._ws_interface?.setup(this._channels);
+		const setup = this._ws_interface?.setup(this._channels, this._clients);
 		if (setup && setup.message) return setup.message(ws, message);
 
 		ws.send("This is the message from the server: " + message);
 		Websocket.BraodcastAll({ type: "client.message.received", content: message });
+	};
+
+	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
+		Lib.Log("Client connected", ws.data);
+		const setup = this._ws_interface?.setup(this._channels, this._clients);
+		if (setup && setup.open) return setup.open(ws);
+		const global = this._channels.get("global");
+		if (!global) throw new Error("Global channel not found");
+		//TODO: handshake
+		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
+		this._clients.set(client.id, client);
+		global.addMember(client);
+		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
+	};
+
+	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>, code: number, reason: string) => {
+		Lib.Log("Client disconnected", ws.data);
+		const setup = this._ws_interface?.setup(this._channels, this._clients);
+		if (setup && setup.close) return setup.close(ws, code, reason);
+
+		const client = this._clients.get(ws.data.id);
+		if (!client) return;
+		this._channels.forEach((channel) => {
+			channel.removeMember(client);
+		});
+
+		this._clients.delete(ws.data.id);
 	};
 
 	private handleHeartbeat = (ws: ServerWebSocket<WebsocketEntityData>, message: WebsocketMessage) => {
@@ -93,27 +120,6 @@ export default class Websocket extends Singleton {
 			return true;
 		}
 		return false;
-	};
-
-	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
-		const global = this._channels.get("global");
-		if (!global) throw new Error("Global channel not found");
-
-		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
-		this._clients.set(client.id, client);
-		global.addMember(client);
-		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { client: client.whoami() } });
-	};
-
-	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
-		Lib.Log("WebSocket connection closed");
-		const client = this._clients.get(ws.data.id);
-		if (!client) return;
-		this._channels.forEach((channel) => {
-			channel.removeMember(client);
-		});
-
-		this._clients.delete(ws.data.id);
 	};
 
 	protected createClient(entity: I_WebsocketEntity): I_WebsocketClient {

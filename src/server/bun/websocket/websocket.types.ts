@@ -5,20 +5,60 @@ import Websocket from "./Websocket";
 export type WebsocketMessage = string | Buffer<ArrayBufferLike>;
 
 export type WebsocketChannel<T extends I_WebsocketChannel = Channel> = Map<string, T>;
+export type WebsocketClients = Map<string, I_WebsocketClient>;
 
 export type WebsocketStructuredMessage<T = any> = {
+	/**
+	 * Message type identifier used for client-side routing
+	 */
 	type: string;
+
+	/**
+	 * Message content - can be any data structure
+	 * If a string is provided, it will be wrapped in {message: string}
+	 */
 	content: T;
+
+	/**
+	 * Optional channel identifier
+	 * If not provided, the channel ID will be added automatically during broadcast
+	 */
 	channel?: string;
+
+	/**
+	 * Optional metadata key-value pairs
+	 * Can be used to add additional context to the message
+	 */
 	metadata?: Record<string, string>;
+
+	/**
+	 * Optional timestamp
+	 * If not provided, it will be added automatically during broadcast
+	 */
+	timestamp?: string;
+
+	/**
+	 * Optional sender information
+	 * Can be used to identify the source of the message
+	 */
+	client?: {
+		id: string;
+		name?: string;
+		[key: string]: any;
+	};
+
+	/**
+	 * Any additional custom fields
+	 */
+	[key: string]: any;
 };
 
-export type WebsocketEntityData = { id: string; name: string };
+export type WebsocketEntityId = string;
+export type WebsocketEntityName = string;
+export type WebsocketEntityData = { id: WebsocketEntityId; name: WebsocketEntityName };
 
-export interface I_WebsocketEntity {
+export interface I_WebsocketEntity extends WebsocketEntityData {
 	ws: ServerWebSocket<WebsocketEntityData>;
-	id: string;
-	name: string;
 }
 
 export interface I_WebsocketClient extends I_WebsocketEntity {
@@ -39,28 +79,76 @@ export interface I_WebsocketChannelEntity<T extends Websocket = Websocket> exten
 
 // New types for the broadcast method
 export type BroadcastOptions = {
-	// Additional data to include in the message content
+	/**
+	 * Additional data to include in the message content
+	 * If an object is provided, it will be merged with the content
+	 * If a primitive value is provided, it will be added as content.data
+	 */
 	data?: any;
 
-	// Client information to include
+	/**
+	 * Client information to include in the message
+	 * Will be added as content.client
+	 */
 	client?: Partial<WebsocketEntityData> & {
 		[key: string]: any;
 	};
 
-	// Channel metadata to include (true for all, array for specific keys)
+	/**
+	 * Channel metadata to include in the message
+	 * If true, all metadata will be included
+	 * If an array of strings, only the specified keys will be included
+	 */
 	includeMetadata?: boolean | string[];
 
-	// Client IDs to exclude from receiving the broadcast
+	/**
+	 * Client IDs to exclude from receiving the broadcast
+	 * Useful for sending messages to all clients except the sender
+	 */
 	excludeClients?: string[];
 
-	// Whether to include timestamp in the message
+	/**
+	 * Whether to include timestamp in the message
+	 * Defaults to true
+	 */
 	includeTimestamp?: boolean;
 
-	// Custom fields to add to the root of the message
+	/**
+	 * Custom fields to add to the root of the message
+	 * These will be merged with the message object
+	 */
 	customFields?: Record<string, any>;
 
-	// Transform function to modify the final message before sending
+	/**
+	 * Transform function to modify the final message before sending
+	 * This is applied after all other processing
+	 */
 	transform?: (message: any) => any;
+
+	/**
+	 * Whether to include sender information in the message
+	 * If true, the channel's ID and name will be added as client
+	 * If an object, it will be used as the client value
+	 */
+	includeSender?:
+		| boolean
+		| {
+				id: string;
+				name?: string;
+				[key: string]: any;
+		  };
+
+	/**
+	 * Priority of the message (higher numbers = higher priority)
+	 * Can be used by clients to determine processing order
+	 */
+	priority?: number;
+
+	/**
+	 * Message expiration time in milliseconds since epoch
+	 * Can be used by clients to ignore outdated messages
+	 */
+	expiresAt?: number;
 };
 
 export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_WebsocketChannelEntity<T> {
@@ -84,5 +172,5 @@ export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_W
 }
 
 export interface I_WebsocketInterface {
-	setup: (channels: WebsocketChannel) => Partial<WebSocketHandler<WebsocketEntityData>>;
+	setup: (channels: WebsocketChannel, clients: WebsocketClients) => Partial<WebSocketHandler<WebsocketEntityData>>;
 }
