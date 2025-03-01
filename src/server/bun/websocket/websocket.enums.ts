@@ -8,6 +8,10 @@ export enum E_WebsocketMessageType {
 	PING = "ping",
 	PONG = "pong",
 	MESSAGE = "message",
+	WHISPER = "whisper",
+	BROADCAST = "broadcast",
+	ERROR = "error",
+	SYSTEM = "system",
 }
 
 export enum E_WebsocketMessagePriority {
