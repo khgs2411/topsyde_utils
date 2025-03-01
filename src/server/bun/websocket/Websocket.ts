@@ -26,10 +26,10 @@ export interface I_WebsocketConstructor {
 export default class Websocket extends Singleton {
 	protected _channels: WebsocketChannel;
 	protected _clients: Map<string, I_WebsocketClient> = new Map();
-	private _server!: Server;
-	private _channelClass: typeof Channel;
-	private _clientClass: typeof Client;
-	private _ws_interface?: I_WebsocketInterface;
+	protected _server!: Server;
+	protected _channelClass: typeof Channel;
+	protected _clientClass: typeof Client;
+	protected _ws_interface?: I_WebsocketInterface;
 	protected constructor(options?: I_WebsocketConstructor) {
 		super();
 		this._ws_interface = options?.ws_interface;
@@ -39,7 +39,7 @@ export default class Websocket extends Singleton {
 		this.createChannel("global", "Global", 1000);
 	}
 
-	private set server(value: Server) {
+	protected set server(value: Server) {
 		this._server = value;
 	}
 
