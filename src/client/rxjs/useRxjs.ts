@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import Rxjs, { RxjsNamespaces, I_RxjsPayload } from "./rxjs";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { Rxjs, RxjsNamespaces, I_RxjsPayload } from "./rxjs";
 import { Guards, Lib } from "../../utils";
 
 export type RxjsDataType = string | Record<string, any>;
@@ -15,14 +15,21 @@ export const useRxjs = <T extends string>(
 	const subs = ref<Map<RxjsNamespaces<T>, Subscription>>(new Map());
 	const _actions = ref(actions);
 
+	const namespaces = ref<RxjsNamespaces<T>[]>(Guards.IsArray(_namespace) ? _namespace : [_namespace]);
+	
+    namespaces.value.forEach((ns) => {
+		console.log("Creating namespace", ns);
+		Rxjs.GetInstance<Rxjs<T>>().create(ns);
+	});
+
 	function _getAction(cta: string, ns: RxjsNamespaces<T>) {
 		if (Guards.IsArray(_namespace)) return _actions.value?.[ns]?.[cta];
 		return _actions.value?.[cta];
 	}
 
 	function $next(namespace: RxjsNamespaces<T>, payload: I_RxjsPayload<any>): void;
-	function $next(cta: string, data: any): void;
-	function $next(firstParam: RxjsNamespaces<T> | string, secondParam: I_RxjsPayload<any> | any): void {
+	function $next(cta: string, data: RxjsDataType): void;
+	function $next(firstParam: RxjsNamespaces<T> | string, secondParam: I_RxjsPayload<RxjsDataType> | any): void {
 		if (typeof firstParam !== "string" && secondParam && typeof secondParam === "object" && "cta" in secondParam && "data" in secondParam) {
 			const ns = firstParam;
 			const payload: I_RxjsPayload<any> = secondParam;

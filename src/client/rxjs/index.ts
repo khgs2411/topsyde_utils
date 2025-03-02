@@ -3,4 +3,3 @@
 
 export * from './rxjs';
 export * from './useRxjs';
-export { default as RxjsInstance } from './rxjs';

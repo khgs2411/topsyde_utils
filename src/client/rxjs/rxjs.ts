@@ -2,7 +2,7 @@ import { AsyncSubject, BehaviorSubject, ReplaySubject, Subject, Subscription } f
 import { Lib } from "../../utils";
 import { Singleton } from "../..";
 
-enum E_SUBJET_TYPE {
+export enum E_SUBJET_TYPE {
 	SUBJECT = "subject",
 	ASYNC_SUBJECT = "asyncSubject",
 	BEHAVIOR_SUBJECT = "behaviorSubject",
@@ -17,34 +17,14 @@ export type I_RxjsPayload<T> = {
 
 export type RxjsNamespaces<T extends string> = T;
 
-export default class Rxjs<T extends string> extends Singleton {
+export class Rxjs<T extends string> extends Singleton {
 	public namespaces = new Map<string, RxjsInstance>();
 
 	create(namespace: string, subjectType: E_SUBJET_TYPE = E_SUBJET_TYPE.SUBJECT) {
+		console.log("Creating namespace", namespace, subjectType);
 		if (!this.namespaces.has(namespace)) {
 			this.namespaces.set(namespace, new RxjsInstance(subjectType));
 		}
-	}
-
-	registerNamespaces() {
-		// register every rxjs namespace as needed
-		this.create("system", E_SUBJET_TYPE.BEHAVIOR_SUBJECT);
-		this.create("amplitude");
-		this.create("modal");
-		this.create("utils");
-		this.create("toast");
-		this.create("selectBox");
-		this.create("table");
-		this.create("integrations", E_SUBJET_TYPE.BEHAVIOR_SUBJECT);
-		this.create("cell", E_SUBJET_TYPE.BEHAVIOR_SUBJECT);
-		this.create("appcenter", E_SUBJET_TYPE.BEHAVIOR_SUBJECT);
-		this.create("customerCard");
-		this.create("statham");
-		this.create("pusher");
-		this.create("search");
-		this.create("views");
-		this.create("component_state", E_SUBJET_TYPE.REPLAY_SUBJECT);
-		this.create("marketplace");
 	}
 
 	next<U>(namespace: RxjsNamespaces<T>, rxjsPayload: I_RxjsPayload<U>): void {

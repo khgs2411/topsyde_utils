@@ -36,6 +36,7 @@ export default class Websocket extends Singleton {
 	protected _clientClass: typeof Client;
 	protected _ws_interface?: I_WebsocketInterface;
 	protected _options: WebsocketConstructorOptions;
+	protected _ws_interface_setup: Partial<WebSocketHandler<WebsocketEntityData>>;
 	protected constructor(options?: I_WebsocketConstructor) {
 		super();
 		this._ws_interface = options?.ws_interface;
@@ -44,6 +45,7 @@ export default class Websocket extends Singleton {
 		this._channelClass = options?.channelClass ?? Channel.GetChannelType(options?.channels);
 		this._options = options?.options ?? { debug: false };
 		this.createChannel("global", "Global", 1000);
+		this._ws_interface_setup = this._ws_interface?.setup(this._channels, this._clients) ?? {};
 	}
 
 	protected set server(value: Server) {
@@ -86,8 +88,7 @@ export default class Websocket extends Singleton {
 	private clientMessageReceived = (ws: ServerWebSocket<WebsocketEntityData>, message: BunWebsocketMessage) => {
 		if (Websocket.Heartbeat(ws, message)) return;
 
-		const setup = this._ws_interface?.setup(this._channels, this._clients);
-		if (setup && setup.message) return setup.message(ws, message);
+		if (this._ws_interface_setup.message) return this._ws_interface_setup.message(ws, message);
 
 		ws.send("This is the message from the server: " + message);
 		Websocket.BraodcastAll({ type: "client.message.received", content: { message } });
@@ -95,23 +96,29 @@ export default class Websocket extends Singleton {
 
 	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
 		if (this._options.debug) Lib.Log("Client connected", ws.data);
-		const setup = this._ws_interface?.setup(this._channels, this._clients);
-		if (setup && setup.open) return setup.open(ws);
+		
+		if (this._ws_interface_setup.open) this._ws_interface_setup.open(ws);
+		
 		const global = this._channels.get("global");
 		if (!global) throw new Error("Global channel not found");
+		
 		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
 		this._clients.set(client.id, client);
+		
 		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
 		global.addMember(client);
+		
+		if (this._ws_interface_setup.open) this._ws_interface_setup.open(ws);
 	};
 
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>, code: number, reason: string) => {
 		if (this._options.debug) Lib.Log("Client disconnected", ws.data);
-		const setup = this._ws_interface?.setup(this._channels, this._clients);
-		if (setup && setup.close) return setup.close(ws, code, reason);
+		
+		if (this._ws_interface_setup.close) this._ws_interface_setup.close(ws, code, reason);
 
 		const client = this._clients.get(ws.data.id);
 		if (!client) return;
+		
 		this._channels.forEach((channel) => {
 			channel.removeMember(client);
 		});
@@ -207,8 +214,8 @@ export default class Websocket extends Singleton {
 	public static GenerateMessage(): WebsocketStructuredMessage {
 		const msg: WebsocketStructuredMessage = {
 			type: "",
-			content: {}
-		}
+			content: {},
+		};
 		return msg;
 	}
 }

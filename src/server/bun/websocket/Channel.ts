@@ -42,7 +42,6 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	public broadcast(message: WebsocketMessage, options?: BroadcastOptions) {
 		const output = this.message.create(message, { ...options, channel: this.id });
 		if (options) {
-
 			// Include channel metadata if requested
 			if (options.includeMetadata) {
 				output.metadata = options.includeMetadata === true ? this.getMetadata() : this.getFilteredMetadata(options.includeMetadata);
