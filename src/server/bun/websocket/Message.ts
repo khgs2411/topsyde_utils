@@ -13,7 +13,7 @@ export default class Message {
 		const output = Object.assign({}, this.messageTemplate);
 		// Set the dynamic properties in a single pass
 		output.type = message.type;
-		output.channel = message.channel || options?.channel || "";
+		output.channel = message.channel || options?.channel || "N/A";
 
 		// Process message content based on type
 		if (typeof message.content === "string") {
@@ -82,7 +82,13 @@ export default class Message {
 		return output;
 	}
 
-	public serialize(message: WebsocketStructuredMessage) {
-		return JSON.stringify(message);
+	public serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T) {
+		return transform ? transform(message) : JSON.stringify(message);
+	}
+
+	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform: (message: WebsocketStructuredMessage) => T): T;
+	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T): string | T;
+	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T): string | T {
+		return transform ? transform(message) : JSON.stringify(message);
 	}
 }

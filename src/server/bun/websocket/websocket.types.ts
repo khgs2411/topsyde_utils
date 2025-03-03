@@ -93,6 +93,10 @@ export type WebsocketMessage<T extends Record<string, any> = Record<string, any>
 	 */
 	channel?: string;
 	/**
+	 * Timestamp of the message
+	 */
+	timestamp?: string;
+	/**
 	 * Any additional custom fields
 	 */
 	[key: string]: any;
