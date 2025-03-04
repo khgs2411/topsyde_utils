@@ -1,5 +1,5 @@
 import Guards from "../../../utils/Guards";
-import { WebsocketStructuredMessage, WebsocketMessage, WebsocketMessageOptions } from "./websocket.types";
+import { WebsocketStructuredMessage, WebsocketMessage, WebsocketMessageOptions, I_WebsocketChannel, I_WebsocketClient } from "./websocket.types";
 
 export default class Message {
 	private messageTemplate: WebsocketStructuredMessage<any>;
@@ -8,7 +8,7 @@ export default class Message {
 		this.messageTemplate = { type: "", content: {}, channel: "", timestamp: "", client: undefined };
 	}
 
-	public create(message: WebsocketMessage, options?: WebsocketMessageOptions) {
+	public create(message: WebsocketMessage, options?: WebsocketMessageOptions): WebsocketStructuredMessage {
 		// Clone the template (faster than creating new objects)
 		const output = Object.assign({}, this.messageTemplate);
 		// Set the dynamic properties in a single pass
@@ -42,6 +42,8 @@ export default class Message {
 					id: options.client.id,
 					name: options.client.name,
 				};
+			} else {
+				delete output.client;
 			}
 
 			// Include channel metadata if requested
@@ -80,6 +82,16 @@ export default class Message {
 		}
 
 		return output;
+	}
+
+	public createWhisper(message: Omit<WebsocketMessage, "type">, options?: WebsocketMessageOptions) {
+		return this.create({ ...message, content: message.content, channel: message.channel, type: "whisper" }, options);
+	}
+
+	public send(target: I_WebsocketClient, message: WebsocketStructuredMessage): void;
+	public send(target: I_WebsocketClient, message: WebsocketMessage, options?: WebsocketMessageOptions): void;
+	public send(target: I_WebsocketClient, message: WebsocketStructuredMessage | WebsocketMessage, options?: WebsocketMessageOptions): void {
+		target.send(this.create(message, options));
 	}
 
 	public serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T) {

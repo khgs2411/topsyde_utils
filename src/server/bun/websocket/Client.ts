@@ -102,7 +102,7 @@ export default class Client implements I_WebsocketClient {
 	}
 
 	public send(message: WebsocketStructuredMessage) {
-		this.ws.send(JSON.stringify(message));
+		this.ws.send(JSON.stringify({ client: this.whoami(), ...message }));
 	}
 
 	public subscribe(channel: string): void {

@@ -29,12 +29,12 @@ class Application {
 		return Response.json(response, RESPONSE_INIT(status, headers));
 	}
 
-	public static Error<T extends BodyInit | unknown | Error>(error: T | I_ApplicationResponse<T>, status = 200, headers?: HeadersInit) {
+	public static Error<T extends BodyInit | unknown | Error>(error: T | I_ApplicationResponse<T>, status = 200, headers?: HeadersInit): Response {
 		const response = isApplicationResponse(error) ? error : { status: false, data: error, error };
 		return Response.json(response, RESPONSE_INIT(status, headers));
 	}
 
-	public static Throw<T extends BodyInit | unknown | Error>(error: T | I_ApplicationResponse<T>, status = 400, headers?: HeadersInit) {
+	public static Throw<T extends BodyInit | unknown | Error>(error: T | I_ApplicationResponse<T>, status = 400, headers?: HeadersInit): Response {
 		const response = isApplicationResponse(error) ? error : { status: false, data: error, error };
 		return Response.json(response, RESPONSE_INIT(status, headers));
 	}

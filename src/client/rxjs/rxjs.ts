@@ -27,6 +27,10 @@ export class Rxjs<T extends string> extends Singleton {
 		}
 	}
 
+	has(namespace: string) {
+		return this.namespaces.has(namespace);
+	}
+
 	next<U>(namespace: RxjsNamespaces<T>, rxjsPayload: I_RxjsPayload<U>): void {
 		this.namespaces.get(namespace)?.next(rxjsPayload);
 	}

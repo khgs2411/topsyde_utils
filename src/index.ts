@@ -12,6 +12,7 @@ export * from "./throwable";
 export * from "./enums";
 export * from "./client/rxjs/rxjs";
 export * from "./client/rxjs/useRxjs";
+export * from "./client/vite/plugins/topsydeUtilsVitePlugin";
 export * from "./server/controller";
 export * from "./server/service";
 export * from "./server/bun/router/controller-discovery";
@@ -34,6 +35,7 @@ export { default as Singleton } from "./singleton";
 export { default as Initializable } from "./initializable";
 export { default as Application } from "./application";
 export { default as Throwable } from "./throwable";
+export { default as TopsydeUtilsVitePlugin } from "./client/vite/plugins/topsydeUtilsVitePlugin";
 export { default as Controller } from "./server/controller";
 export { default as Service } from "./server/service";
 export { default as Router } from "./server/bun/router/router";
@@ -74,5 +76,6 @@ export {
 	I_WebsocketChannelEntity,
 	BroadcastOptions,
 	I_WebsocketChannel,
+	WebsocketInterfaceHandlers,
 	I_WebsocketInterface,
 } from "./server/bun/websocket/websocket.types";

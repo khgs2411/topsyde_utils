@@ -14,12 +14,13 @@ export const useRxjs = <T extends string>(
 ) => {
 	const subs = ref<Map<RxjsNamespaces<T>, Subscription>>(new Map());
 	const _actions = ref(actions);
-
+	const instance = Rxjs.GetInstance<Rxjs<T>>();
 	const namespaces = ref<RxjsNamespaces<T>[]>(Guards.IsArray(_namespace) ? _namespace : [_namespace]);
-	
-    namespaces.value.forEach((ns) => {
+
+	namespaces.value.forEach((ns) => {
+		if (instance.has(ns)) return;
 		console.log("Creating namespace", ns);
-		Rxjs.GetInstance<Rxjs<T>>().create(ns);
+		instance.create(ns);
 	});
 
 	function _getAction(cta: string, ns: RxjsNamespaces<T>) {
@@ -33,7 +34,7 @@ export const useRxjs = <T extends string>(
 		if (typeof firstParam !== "string" && secondParam && typeof secondParam === "object" && "cta" in secondParam && "data" in secondParam) {
 			const ns = firstParam;
 			const payload: I_RxjsPayload<any> = secondParam;
-			Rxjs.GetInstance<Rxjs<T>>().next(ns, payload);
+			instance.next(ns, payload);
 			return;
 		}
 
@@ -41,12 +42,12 @@ export const useRxjs = <T extends string>(
 		const data = secondParam as RxjsDataType;
 		const namespaces = Guards.IsArray(_namespace) ? _namespace : [_namespace];
 		namespaces.forEach((ns) => {
-			Rxjs.GetInstance<Rxjs<T>>().next(ns, { cta, data });
+			instance.next(ns, { cta, data });
 		});
 	}
 
 	function $clear(namespace: RxjsNamespaces<T>) {
-		Rxjs.GetInstance<Rxjs<T>>().clear(namespace);
+		instance.clear(namespace);
 	}
 
 	function $subscribe(actions: NamespaceActions | MultiNamespaceActions<T>) {
@@ -56,7 +57,7 @@ export const useRxjs = <T extends string>(
 		const namespaces = Guards.IsArray(_namespace) ? _namespace : [_namespace];
 
 		namespaces.forEach((ns) => {
-			if (!Rxjs.GetInstance<Rxjs<T>>().namespaces.has(ns)) {
+			if (!instance.namespaces.has(ns)) {
 				Lib.Warn(`Rxjs namespace ${ns} does not exist`);
 				return;
 			}
@@ -65,7 +66,7 @@ export const useRxjs = <T extends string>(
 
 			subs.value.set(
 				ns,
-				Rxjs.GetInstance<Rxjs<T>>().subscribe(ns, ({ cta, data }) => {
+				instance.subscribe(ns, ({ cta, data }) => {
 					const action = _getAction(cta, ns) || (() => {});
 					action(data);
 				}),

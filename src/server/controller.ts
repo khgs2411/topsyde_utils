@@ -42,6 +42,14 @@ export default abstract class Controller extends Initializable {
 		return await action(request);
 	}
 
+	public success<T>(data: T): I_ApplicationResponse<T> {
+		return { status: true, data };
+	}
+
+	public failure<T>(data: T): I_ApplicationResponse<T> {
+		return { status: false, data };
+	}
+
 	private setControllerMap() {
 		this.controllerMap.set("GET", this.get);
 		this.controllerMap.set("POST", this.post);
