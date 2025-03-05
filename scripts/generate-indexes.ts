@@ -50,6 +50,11 @@ async function getFilesInDirectory(dirPath: string): Promise<string[]> {
 
 // Extract default export class name from file content
 function extractDefaultExportName(content: string, filename: string): string | null {
+  // First check if there's actually a default export
+  if (!content.includes("export default")) {
+    return null;
+  }
+  
   // Check for class name in default export
   const classMatch = content.match(/(?:abstract\s+)?class\s+(\w+)(?:\s+extends\s+(?:Error|.*?))?\s*{/);
   if (classMatch && content.includes("export default")) {
@@ -57,14 +62,10 @@ function extractDefaultExportName(content: string, filename: string): string | n
   }
   
   // If no class match but has default export, use capitalized filename
-  if (content.includes("export default")) {
-    return filename
-      .replace(/\.ts$/, "")
-      .replace(/\.([a-z])/g, (match, p1) => p1.toUpperCase())
-      .replace(/^\w/, (c) => c.toUpperCase());
-  }
-  
-  return null;
+  return filename
+    .replace(/\.ts$/, "")
+    .replace(/\.([a-z])/g, (match, p1) => p1.toUpperCase())
+    .replace(/^\w/, (c) => c.toUpperCase());
 }
 
 // Extract named exports from file content

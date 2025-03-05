@@ -172,6 +172,17 @@ ELAPSED_TIME=$((END_TIME - START_TIME))
 MINUTES=$((ELAPSED_TIME / 60))
 SECONDS=$((ELAPSED_TIME % 60))
 
+# Calculate build size information
+echo -e "${YELLOW}Calculating build size information...${NC}"
+DIST_SIZE=$(du -sh dist | cut -f1)
+DIST_FILES=$(find dist -type f | wc -l | xargs)
+JS_FILES=$(find dist -name "*.js" -type f | wc -l | xargs)
+JS_SIZE=$(du -ch $(find dist -name "*.js" -type f) | tail -n 1 | cut -f1)
+MAP_FILES=$(find dist -name "*.map" -type f | wc -l | xargs)
+MAP_SIZE=$(du -ch $(find dist -name "*.map" -type f) 2>/dev/null | tail -n 1 | cut -f1 2>/dev/null || echo "0B")
+DTS_FILES=$(find dist -name "*.d.ts" -type f | wc -l | xargs)
+DTS_SIZE=$(du -ch $(find dist -name "*.d.ts" -type f) | tail -n 1 | cut -f1)
+
 if [ "$DRY_RUN" = true ]; then
   echo -e "${GREEN}Dry run completed successfully!${NC}"
   echo -e "${GREEN}Current version:${NC} $CURRENT_VERSION (unchanged)"
@@ -185,4 +196,12 @@ else
   echo -e "${GREEN}New version:${NC} $NEW_VERSION"
 fi
 echo -e "${GREEN}Tag:${NC} $TAG"
-echo -e "${GREEN}Time taken:${NC} ${MINUTES}m ${SECONDS}s" 
+echo -e "${GREEN}Time taken:${NC} ${MINUTES}m ${SECONDS}s"
+
+# Display build size information
+echo -e "${GREEN}Build size information:${NC}"
+echo -e "  Total dist size:    ${BLUE}${DIST_SIZE}${NC}"
+echo -e "  Total files:        ${BLUE}${DIST_FILES}${NC}"
+echo -e "  JavaScript:         ${BLUE}${JS_FILES} files (${JS_SIZE})${NC}"
+echo -e "  Source maps:        ${BLUE}${MAP_FILES} files (${MAP_SIZE})${NC}"
+echo -e "  TypeScript defs:    ${BLUE}${DTS_FILES} files (${DTS_SIZE})${NC}" 
