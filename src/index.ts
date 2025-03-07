@@ -51,7 +51,7 @@ export { default as Console } from "./utils/Console";
 // Re-export specific items for backward compatibility
 export { ERROR_CODE, HTTP_ERROR_CODE, WS_ERROR_CODE } from "./errors";
 export { InitializableOptions, InitializableEvent } from "./initializable";
-export { RESPONSE_INIT, RESPONSE_METHOD_OPTIONS } from "./application";
+export { RESPONSE_INIT, HEADERS_INIT, RESPONSE_METHOD_OPTIONS } from "./application";
 export { DEFAULT_FALSE_RESPONSE, LOG_COLORS, LOG_ICONS } from "./consts";
 export { ClassConstructor, NonNullableType, ObjectKeys, KVObj, I_ApplicationResponse } from "./types";
 export { E_IS, E_ENVIRONMENTS } from "./enums";
