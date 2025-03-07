@@ -3,14 +3,19 @@ import { I_ApplicationResponse } from "./types";
 export const RESPONSE_INIT = (status?: number, headers?: HeadersInit): ResponseInit => {
 	return {
 		status: status ?? 200,
-		headers: {
-			"Access-Control-Allow-Origin": "*",
-			"Content-Type": "application/json",
-			"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-			"Access-Control-Allow-Headers": "Content-Type, Authorization",
-			"Access-Control-Allow-Credentials": "true",
-			"Access-Control-Max-Age": "86400", // 24 hours
-		},
+		headers: HEADERS_INIT(headers),
+	};
+};
+
+export const HEADERS_INIT = (headers?: HeadersInit): HeadersInit => {
+	return {
+		"Access-Control-Allow-Origin": "*", // Specific origin
+		"Content-Type": "application/json",
+		"Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+		"Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, Accept",
+		"Access-Control-Allow-Credentials": "true",
+		"Access-Control-Max-Age": "86400", // 24 hours
+		...headers,
 	};
 };
 
