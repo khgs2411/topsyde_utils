@@ -98,8 +98,6 @@ export default class Websocket extends Singleton {
 	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
 		if (this._options.debug) Lib.Log("[debug] Client connected", ws.data);
 
-		if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);
-
 		const global = this._channels.get("global");
 		if (!global) throw new Error("Global channel not found");
 
