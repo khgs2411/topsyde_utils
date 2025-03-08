@@ -58,6 +58,7 @@ export default class Websocket extends Singleton {
 
 	public set(server: Server) {
 		this.server = server;
+		Console.blank();
 		Console.success("Websocket server set");
 	}
 
@@ -95,30 +96,30 @@ export default class Websocket extends Singleton {
 	};
 
 	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
-		if (this._options.debug) Lib.Log("Client connected", ws.data);
-		
+		if (this._options.debug) Lib.Log("[debug] Client connected", ws.data);
+
 		if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);
-		
+
 		const global = this._channels.get("global");
 		if (!global) throw new Error("Global channel not found");
-		
+
 		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
 		this._clients.set(client.id, client);
-		
+
 		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
 		global.addMember(client);
-		
+
 		if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);
 	};
 
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>, code: number, reason: string) => {
 		if (this._options.debug) Lib.Log("Client disconnected", ws.data);
-		
+
 		if (this._ws_interface_handlers.close) this._ws_interface_handlers.close(ws, code, reason);
 
 		const client = this._clients.get(ws.data.id);
 		if (!client) return;
-		
+
 		this._channels.forEach((channel) => {
 			channel.removeMember(client);
 		});
