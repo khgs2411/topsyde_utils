@@ -94,6 +94,23 @@ export default class Message {
 		target.send(this.create(message, options));
 	}
 
+	public alert(target: I_WebsocketClient, reason: string, client?: I_WebsocketClient) {
+		this.send(
+			target,
+			this.createWhisper(
+				{
+					content: {
+						message: reason,
+					},
+					channel: "alert",
+				},
+				{
+					client: client,
+				},
+			),
+		);
+	}
+
 	public serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T) {
 		return transform ? transform(message) : JSON.stringify(message);
 	}

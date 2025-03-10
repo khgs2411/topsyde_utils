@@ -21,6 +21,7 @@
     "build": "bun run build:prepare && bun run build:ts && bun run build:types",
     "test": "bun test",
     "release": "./scripts/release.sh",
+    "deploy": "./scripts/release.sh",
     "release:dry-run": "./scripts/release.sh --dry-run",
     "release:test": "./scripts/release.sh --test-publish",
     "version:bump": "npm version --no-git-tag-version"
