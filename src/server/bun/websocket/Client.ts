@@ -126,4 +126,11 @@ export default class Client implements I_WebsocketClient {
 		Lib.Warn("Clients map is empty, using default client class");
 		return Client;
 	}
+
+	public static System() {
+		return <WebsocketEntityData>{
+			id: "system",
+			name: "System",
+		};
+	}
 }

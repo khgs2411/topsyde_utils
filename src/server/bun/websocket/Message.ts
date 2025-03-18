@@ -1,11 +1,18 @@
 import Guards from "../../../utils/Guards";
-import { WebsocketStructuredMessage, WebsocketMessage, WebsocketMessageOptions, I_WebsocketChannel, I_WebsocketClient } from "./websocket.types";
+import {
+	WebsocketStructuredMessage,
+	WebsocketMessage,
+	WebsocketMessageOptions,
+	I_WebsocketChannel,
+	I_WebsocketClient,
+	WebsocketEntityData,
+} from "./websocket.types";
 
 export default class Message {
 	private messageTemplate: WebsocketStructuredMessage<any>;
 
 	constructor() {
-		this.messageTemplate = { type: "", content: {}, channel: "", timestamp: "", client: undefined };
+		this.messageTemplate = { type: "", content: {}, channel: "", timestamp: "" };
 	}
 
 	public create(message: WebsocketMessage, options?: WebsocketMessageOptions): WebsocketStructuredMessage {
@@ -42,9 +49,9 @@ export default class Message {
 					id: options.client.id,
 					name: options.client.name,
 				};
-			} else {
+			} /* else {
 				delete output.client;
-			}
+			} */
 
 			// Include channel metadata if requested
 			if (options.includeMetadata !== false) output.metadata = options.metadata;
@@ -94,19 +101,17 @@ export default class Message {
 		target.send(this.create(message, options));
 	}
 
-	public alert(target: I_WebsocketClient, reason: string, client?: I_WebsocketClient) {
-		this.send(
-			target,
-			this.createWhisper(
+	public alert(target: I_WebsocketClient, reason: string, client?: WebsocketEntityData) {
+		target.send(
+			this.create(
 				{
 					content: {
 						message: reason,
 					},
 					channel: "alert",
+					type: "message",
 				},
-				{
-					client: client,
-				},
+				{ client },
 			),
 		);
 	}

@@ -175,9 +175,13 @@ export default class Websocket extends Singleton {
 		ws._channels.get(channel)?.removeMember(client);
 	}
 
-	public static GetClient(id: string) {
+	public static GetClient(id: string, throw_if_nil?: true): I_WebsocketClient;
+	public static GetClient(id: string, throw_if_nil?: false): I_WebsocketClient | undefined;
+	public static GetClient(id: string, throw_if_nil: boolean = true): I_WebsocketClient | undefined {
 		const ws = this.GetInstance<Websocket>();
-		return ws._clients.get(id);
+		const client = ws._clients.get(id);
+		if (!client && throw_if_nil) throw new Error(`Client with id ${id} not found`);
+		return client;
 	}
 
 	public static GetChannel(id: string) {
