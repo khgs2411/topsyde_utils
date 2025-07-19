@@ -7,8 +7,7 @@ import type {
 	I_WebsocketClient,
 	I_WebsocketEntity,
 	WebsocketChannel,
-	WebsocketMessage,
-	WebsocketStructuredMessage,
+	WebsocketMessage
 } from "./websocket.types";
 
 export default class Channel<T extends Websocket = Websocket> implements I_WebsocketChannel<T> {
@@ -19,8 +18,6 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	public members: Map<string, I_WebsocketClient>;
 	public metadata: Record<string, string>;
 	public ws: T;
-	// Message template for reuse
-	private messageTemplate: WebsocketStructuredMessage<any>;
 	private message: Message;
 
 	constructor(id: string, name: string, ws: T, limit?: number, members?: Map<string, I_WebsocketClient>, metadata?: Record<string, string>) {
@@ -31,16 +28,18 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		this.metadata = metadata ?? {};
 		this.ws = ws;
 		this.message = new Message();
-		this.messageTemplate = {
-			type: "",
-			content: {},
-			channel: this.id,
-			timestamp: "",
-		};
+		
 	}
 
-	public broadcast(message: WebsocketMessage, options?: BroadcastOptions) {
-		const output = this.message.create(message, { ...options, channel: this.id });
+	public broadcast(message: WebsocketMessage | string, options?: BroadcastOptions) {
+		if (Guards.IsString(message)) {
+			const msg: WebsocketMessage = {
+				type: "message",
+				content: { message },
+			};
+			message = msg;
+		}
+		const output = this.message.create(message, { ...options, channel: this.name });
 		if (options) {
 			// Include channel metadata if requested
 			if (options.includeMetadata) {

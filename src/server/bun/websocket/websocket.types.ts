@@ -114,7 +114,8 @@ export interface I_WebsocketEntity extends WebsocketEntityData {
 
 export interface I_WebsocketClient extends I_WebsocketEntity {
 	channels: WebsocketChannel<I_WebsocketChannel>;
-	send(message: WebsocketStructuredMessage): any;
+	send(message: string, options?: WebsocketMessageOptions): void;
+	send(message: WebsocketStructuredMessage): void;
 	subscribe(channel: string): any;
 	joinChannel(channel: I_WebsocketChannel, send?: boolean): void;
 	leaveChannel(channel: I_WebsocketChannel, send?: boolean): void;
@@ -137,7 +138,7 @@ export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_W
 	members: Map<string, I_WebsocketClient>;
 	metadata: Record<string, string>;
 	createdAt: Date;
-	broadcast(message: WebsocketStructuredMessage, options?: BroadcastOptions): void;
+	broadcast(message: WebsocketStructuredMessage | string, options?: BroadcastOptions): void;
 	hasMember(client: I_WebsocketEntity | string): boolean;
 	addMember(entity: I_WebsocketClient): I_WebsocketClient | false;
 	removeMember(entity: I_WebsocketEntity): I_WebsocketClient | false;
@@ -154,13 +155,13 @@ export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_W
 
 /**
  * Interface for implementing custom WebSocket behavior.
- * 
+ *
  * @interface I_WebsocketInterface
- * 
+ *
  * @property {Function} setup - Initializes the WebSocket handler with channels and clients
- * 
+ *
  * The interface supports three optional handler methods:
- * 
+ *
  * - `message`: Custom message handler that replaces the default handler
  * - `open`: Connection handler that runs after the default open handler
  * - `close`: Disconnection handler that runs before the default close handler
@@ -169,13 +170,13 @@ export type WebsocketInterfaceHandlers = Partial<WebSocketHandler<WebsocketEntit
 
 /**
  * Interface for implementing custom WebSocket behavior.
- * 
+ *
  * @interface I_WebsocketInterface
- * 
+ *
  * @property {Function} setup - Initializes the WebSocket handler with channels and clients
- * 
+ *
  * The interface supports three optional handler methods:
- * 
+ *
  * - `message`: Custom message handler that replaces the default handler
  * - `open`: Connection handler that runs after the default open handler
  * - `close`: Disconnection handler that runs before the default close handler
@@ -183,4 +184,3 @@ export type WebsocketInterfaceHandlers = Partial<WebSocketHandler<WebsocketEntit
 export interface I_WebsocketInterface {
 	handlers: (channels: WebsocketChannel, clients: WebsocketClients) => WebsocketInterfaceHandlers;
 }
-

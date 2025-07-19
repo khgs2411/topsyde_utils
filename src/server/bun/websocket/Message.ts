@@ -125,4 +125,9 @@ export default class Message {
 	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T): string | T {
 		return transform ? transform(message) : JSON.stringify(message);
 	}
+
+	public static Create(message: WebsocketMessage, options?: WebsocketMessageOptions): WebsocketStructuredMessage{
+		const msg = new Message();
+		return msg.create(message, options);
+	}
 }

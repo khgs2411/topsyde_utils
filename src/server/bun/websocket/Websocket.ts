@@ -37,6 +37,7 @@ export default class Websocket extends Singleton {
 	protected _ws_interface?: I_WebsocketInterface;
 	protected _options: WebsocketConstructorOptions;
 	protected _ws_interface_handlers: Partial<WebSocketHandler<WebsocketEntityData>>;
+
 	protected constructor(options?: I_WebsocketConstructor) {
 		super();
 		this._ws_interface = options?.ws_interface;
@@ -62,6 +63,13 @@ export default class Websocket extends Singleton {
 		Console.success("Websocket server set");
 	}
 
+	/**
+	 * Create a new channel
+	 * @param id - The id of the channel
+	 * @param name - The name of the channel
+	 * @param limit - The limit of the channel
+	 * @returns The created channel
+	 */
 	public createChannel(id: string, name: string, limit?: number): I_WebsocketChannel {
 		if (this._channels.has(id)) return this._channels.get(id) as I_WebsocketChannel;
 		const channel = new this._channelClass(id, name, this, limit);
@@ -69,10 +77,21 @@ export default class Websocket extends Singleton {
 		return channel;
 	}
 
+	/**
+	 * Remove a channel
+	 * @param id - The id of the channel
+	 */
 	public removeChannel(id: string) {
 		this._channels.delete(id);
 	}
 
+	/**
+	 * Create a new channel
+	 * @param id - The id of the channel
+	 * @param name - The name of the channel
+	 * @param limit - The limit of the channel
+	 * @returns The created channel
+	 */
 	public static CreateChannel(id: string, name: string, limit?: number) {
 		const ws = this.GetInstance<Websocket>();
 		return ws.createChannel(id, name, limit);
@@ -138,15 +157,31 @@ export default class Websocket extends Singleton {
 		return new this._clientClass(entity);
 	}
 
+	/**
+	 * Handle the heartbeat
+	 * @param ws - The websocket
+	 * @param message - The message
+	 * @returns True if the heartbeat was handled, false otherwise
+	 */
 	public static Heartbeat(ws: ServerWebSocket<WebsocketEntityData>, message: BunWebsocketMessage) {
 		const self = this.GetInstance<Websocket>();
 		return self.handleHeartbeat(ws, message);
 	}
 
+	/**
+	 * Get the server
+	 * @returns The server
+	 */
 	public static Server() {
 		return this.GetInstance<Websocket>().server;
 	}
 
+	/**
+	 * Broadcast a message to a channel
+	 * @param channel - The channel
+	 * @param message - The message
+	 * @param args - The arguments
+	 */
 	public static Broadcast(channel: string, message: WebsocketStructuredMessage, ...args: any[]) {
 		// Get the server from the singleton instance
 		const ws = this.GetInstance<Websocket>();
@@ -156,11 +191,21 @@ export default class Websocket extends Singleton {
 		ws.server.publish(channel, JSON.stringify({ message, args }));
 	}
 
+	/**
+	 * Broadcast a message to all channels
+	 * @param message - The message
+	 * @param args - The arguments
+	 */
 	public static BraodcastAll(message: WebsocketStructuredMessage, ...args: any[]) {
 		const ws = this.GetInstance<Websocket>();
 		ws._channels.forEach((channel) => channel.broadcast(message, ...args));
 	}
 
+	/**
+	 * Join a channel
+	 * @param channel - The channel
+	 * @param entity - The entity
+	 */
 	public static Join(channel: string, entity: I_WebsocketEntity) {
 		const ws = this.GetInstance<Websocket>();
 		const client = ws._clients.get(entity.id);
@@ -168,6 +213,11 @@ export default class Websocket extends Singleton {
 		ws._channels.get(channel)?.addMember(client);
 	}
 
+	/**
+	 * Leave a channel
+	 * @param channel - The channel
+	 * @param entity - The entity
+	 */
 	public static Leave(channel: string, entity: I_WebsocketEntity) {
 		const ws = this.GetInstance<Websocket>();
 		const client = ws._clients.get(entity.id);
@@ -175,6 +225,12 @@ export default class Websocket extends Singleton {
 		ws._channels.get(channel)?.removeMember(client);
 	}
 
+	/**
+	 * Get a client
+	 * @param id - The id of the client
+	 * @param throw_if_nil - Whether to throw an error if the client is not found
+	 * @returns The client
+	 */
 	public static GetClient(id: string, throw_if_nil?: true): I_WebsocketClient;
 	public static GetClient(id: string, throw_if_nil?: false): I_WebsocketClient | undefined;
 	public static GetClient(id: string, throw_if_nil: boolean = true): I_WebsocketClient | undefined {
@@ -184,36 +240,66 @@ export default class Websocket extends Singleton {
 		return client;
 	}
 
+	/**
+	 * Get a channel
+	 * @param id - The id of the channel
+	 * @returns The channel
+	 */
 	public static GetChannel(id: string) {
 		const ws = this.GetInstance<Websocket>();
 		return ws._channels.get(id);
 	}
 
+	/**
+	 * Get all channels
+	 * @returns The channels
+	 */
 	public static GetChannels() {
 		const ws = this.GetInstance<Websocket>();
 		return Array.from(ws._channels.values());
 	}
 
+	/**
+	 * Get all clients
+	 * @returns The clients
+	 */
 	public static GetClients() {
 		const ws = this.GetInstance<Websocket>();
 		return Array.from(ws._clients.values());
 	}
 
+	/**
+	 * Get the number of clients
+	 * @returns The number of clients
+	 */
 	public static GetClientCount() {
 		const ws = this.GetInstance<Websocket>();
 		return ws._clients.size;
 	}
 
+	/**
+	 * Get the number of channels
+	 * @returns The number of channels
+	 */
 	public static GetChannelCount() {
 		const ws = this.GetInstance<Websocket>();
 		return ws._channels.size;
 	}
 
+	/**
+	 * Create a client
+	 * @param entity - The entity
+	 * @returns The created client
+	 */
 	public static CreateClient(entity: I_WebsocketEntity): I_WebsocketClient {
 		const ws = this.GetInstance<Websocket>();
 		return ws.createClient(entity);
 	}
 
+	/**
+	 * Generate a message
+	 * @returns The generated message
+	 */
 	public static GenerateMessage(): WebsocketStructuredMessage {
 		const msg: WebsocketStructuredMessage = {
 			type: "",

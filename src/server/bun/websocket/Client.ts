@@ -6,9 +6,12 @@ import type {
 	WebsocketStructuredMessage,
 	I_WebsocketEntity,
 	I_WebsocketChannel,
+	WebsocketMessageOptions,
+	WebsocketMessage,
 } from "./websocket.types";
 import { E_WebsocketMessageType } from "./websocket.enums";
-import { Lib } from "../../../utils";
+import { Guards, Lib } from "../../../utils";
+import Message from "./Message";
 
 export default class Client implements I_WebsocketClient {
 	private _id: string;
@@ -101,7 +104,16 @@ export default class Client implements I_WebsocketClient {
 		return { id: this.id, name: this.name };
 	}
 
-	public send(message: WebsocketStructuredMessage) {
+	public send(message: string, options?: WebsocketMessageOptions): void;
+	public send(message: WebsocketStructuredMessage): void;
+	public send(message: WebsocketStructuredMessage | string, options?: WebsocketMessageOptions): void {
+		if (Guards.IsString(message)) {
+			const msg: WebsocketMessage = {
+				type: "message",
+				content: { message },
+			};
+			message = Message.Create(msg, options);
+		}
 		this.ws.send(JSON.stringify({ client: this.whoami(), ...message }));
 	}
 

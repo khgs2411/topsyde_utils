@@ -382,7 +382,7 @@ describe("Singleton", () => {
 		// Update expectations to match actual structure - we don't care about exact format
 		// as long as it contains the message
 		expect(parsedJson).toHaveProperty("type", message.type);
-		expect(parsedJson).toHaveProperty("channel", channel.id);
+		expect(parsedJson).toHaveProperty("channel", channel.name);
 
 		spy.mockRestore();
 	});
