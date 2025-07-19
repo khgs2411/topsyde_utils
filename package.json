@@ -39,6 +39,10 @@
       "types": "./dist/client/vite/plugins/index.d.ts",
       "default": "./dist/client/vite/plugins/index.js"
     },
+    "./server/base": {
+      "types": "./dist/server/base/index.d.ts",
+      "default": "./dist/server/base/index.js"
+    },
     "./server/bun/router": {
       "types": "./dist/server/bun/router/index.d.ts",
       "default": "./dist/server/bun/router/index.js"
@@ -59,6 +63,9 @@
       ],
       "client/vite/plugins": [
         "./dist/client/vite/plugins/index.d.ts"
+      ],
+      "server/base": [
+        "./dist/server/base/index.d.ts"
       ],
       "server/bun/router": [
         "./dist/server/bun/router/index.d.ts"

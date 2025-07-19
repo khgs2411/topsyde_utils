@@ -7,11 +7,11 @@ export default abstract class Singleton {
 		this.timestamp = new Date();
 	}
 
-	public static GetInstance<T extends Singleton>(this: new (...args: any[]) => T, ...args: any[]): T {
+	public static GetInstance<T extends Singleton>(...args: any[]): T {
 		const className = this.name;
 
 		if (!Singleton._instances.has(className)) {
-			const instance = new this(...args);
+			const instance = Reflect.construct(this, args) as T;
 			Singleton._instances.set(className, instance);
 		}
 
