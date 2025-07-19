@@ -4,8 +4,8 @@ import { Guards, Lib } from "../../utils";
 import { I_RxjsPayload, Rxjs, RxjsNamespaces } from "../../utils/Rxjs";
 
 export type RxjsDataType = string | Record<string, any>;
-type NamespaceActions = Record<string, Function>;
-type MultiNamespaceActions<T extends string> = Partial<Record<RxjsNamespaces<T>, NamespaceActions>>;
+export type NamespaceActions = Record<string, (data: any) => void>;
+export type MultiNamespaceActions<T extends string> = Partial<Record<RxjsNamespaces<T>, NamespaceActions>>;
 
 export const useRxjs = <T extends string>(
 	_namespace: RxjsNamespaces<T> | RxjsNamespaces<T>[],

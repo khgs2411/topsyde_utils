@@ -57,7 +57,7 @@ export { RESPONSE_INIT, HEADERS_INIT, RESPONSE_METHOD_OPTIONS } from "./applicat
 export { DEFAULT_FALSE_RESPONSE, LOG_COLORS, LOG_ICONS } from "./consts";
 export { ClassConstructor, NonNullableType, ObjectKeys, KVObj, I_ApplicationResponse } from "./types";
 export { E_IS, E_ENVIRONMENTS } from "./enums";
-export { RxjsDataType } from "./client/rxjs/useRxjs";
+export { RxjsDataType, NamespaceActions, MultiNamespaceActions } from "./client/rxjs/useRxjs";
 export { ControllerResponse, ControllerAction, ControllerMap, ControllerOptions } from "./server/controller";
 export { Routes } from "./server/bun/router/routes";
 export { WebsocketConstructorOptions, I_WebsocketConstructor } from "./server/bun/websocket/Websocket";
@@ -80,4 +80,4 @@ export {
 	WebsocketInterfaceHandlers,
 	I_WebsocketInterface,
 } from "./server/bun/websocket/websocket.types";
-export { E_SUBJET_TYPE, I_RxjsPayload, RxjsNamespaces } from "./utils/Rxjs";
+export { E_SUBJET_TYPE, I_RxjsPayload, RxjsNamespaces, AsyncSubject, BehaviorSubject, ReplaySubject, Subject, Subscription } from "./utils/Rxjs";

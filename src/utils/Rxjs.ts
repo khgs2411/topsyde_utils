@@ -48,6 +48,18 @@ export class Rxjs<T extends string> extends Singleton {
 	clear(namespace: RxjsNamespaces<T>) {
 		this.namespaces.get(namespace)?.clear();
 	}
+
+	public static Next<T extends string, U>(namespace: RxjsNamespaces<T>, rxjsPayload: I_RxjsPayload<U>): void {
+		const rxjs = Rxjs.GetInstance<Rxjs<T>>();
+		rxjs.create(namespace);
+		rxjs.next(namespace, rxjsPayload);
+	}
+
+	public static Subscribe<T extends string, U>(namespace: RxjsNamespaces<T>, listener: (payload: I_RxjsPayload<U>) => any): Subscription {
+		const rxjs = Rxjs.GetInstance<Rxjs<T>>();
+		rxjs.create(namespace);
+		return rxjs.subscribe(namespace, listener);
+	}
 }
 
 export class RxjsInstance {
