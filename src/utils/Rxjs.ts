@@ -1,6 +1,8 @@
 import { AsyncSubject, BehaviorSubject, ReplaySubject, Subject, Subscription } from "rxjs";
-import { Lib } from "../../utils";
-import { Singleton } from "../..";
+import Singleton from "../singleton";
+import Lib from "./Lib";
+
+export { AsyncSubject, BehaviorSubject, ReplaySubject, Subject, Subscription } from "rxjs";
 
 export enum E_SUBJET_TYPE {
 	SUBJECT = "subject",
@@ -35,12 +37,12 @@ export class Rxjs<T extends string> extends Singleton {
 		this.namespaces.get(namespace)?.next(rxjsPayload);
 	}
 
-	subscribe(namespace: RxjsNamespaces<T>, listener: (payload: I_RxjsPayload<T>) => any): Subscription {
+	subscribe<U>(namespace: RxjsNamespaces<T>, listener: (payload: I_RxjsPayload<U>) => any): Subscription {
 		const instance = this.namespaces.get(namespace);
 		if (!instance) {
 			throw new Error(`Namespace ${namespace} not found`);
 		}
-		return instance.subscribe((payload: I_RxjsPayload<T>) => listener(payload));
+		return instance.subscribe((payload: I_RxjsPayload<U>) => listener(payload));
 	}
 
 	clear(namespace: RxjsNamespaces<T>) {

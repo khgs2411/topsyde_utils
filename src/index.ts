@@ -10,7 +10,6 @@ export * from "./consts";
 export * from "./types";
 export * from "./throwable";
 export * from "./enums";
-export * from "./client/rxjs/rxjs";
 export * from "./client/rxjs/useRxjs";
 export * from "./client/vite/plugins/topsydeUtilsVitePlugin";
 export * from "./server/controller";
@@ -27,6 +26,7 @@ export * from "./server/bun/websocket/websocket.enums";
 export * from "./server/bun/websocket/websocket.types";
 export * from "./server/bun/websocket/Message";
 export * from "./server/bun/websocket/Channel";
+export * from "./utils/Rxjs";
 export * from "./utils/Guards";
 export * from "./utils/Lib";
 export * from "./utils/Console";
@@ -57,7 +57,6 @@ export { RESPONSE_INIT, HEADERS_INIT, RESPONSE_METHOD_OPTIONS } from "./applicat
 export { DEFAULT_FALSE_RESPONSE, LOG_COLORS, LOG_ICONS } from "./consts";
 export { ClassConstructor, NonNullableType, ObjectKeys, KVObj, I_ApplicationResponse } from "./types";
 export { E_IS, E_ENVIRONMENTS } from "./enums";
-export { E_SUBJET_TYPE, I_RxjsPayload, RxjsNamespaces } from "./client/rxjs/rxjs";
 export { RxjsDataType } from "./client/rxjs/useRxjs";
 export { ControllerResponse, ControllerAction, ControllerMap, ControllerOptions } from "./server/controller";
 export { Routes } from "./server/bun/router/routes";
@@ -81,3 +80,4 @@ export {
 	WebsocketInterfaceHandlers,
 	I_WebsocketInterface,
 } from "./server/bun/websocket/websocket.types";
+export { E_SUBJET_TYPE, I_RxjsPayload, RxjsNamespaces } from "./utils/Rxjs";

@@ -1,7 +1,7 @@
 import { Subscription } from "rxjs";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { Rxjs, RxjsNamespaces, I_RxjsPayload } from "./rxjs";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { Guards, Lib } from "../../utils";
+import { I_RxjsPayload, Rxjs, RxjsNamespaces } from "../../utils/Rxjs";
 
 export type RxjsDataType = string | Record<string, any>;
 type NamespaceActions = Record<string, Function>;
