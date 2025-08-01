@@ -23,8 +23,8 @@ export class Rxjs<T extends string> extends Singleton {
 	public namespaces = new Map<string, RxjsInstance>();
 
 	create(namespace: string, subjectType: E_SUBJET_TYPE = E_SUBJET_TYPE.SUBJECT) {
-		console.log("Creating namespace", namespace, subjectType);
 		if (!this.namespaces.has(namespace)) {
+			console.log("Creating namespace", namespace, subjectType);
 			this.namespaces.set(namespace, new RxjsInstance(subjectType));
 		}
 	}

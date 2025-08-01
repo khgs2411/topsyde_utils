@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.188",
+  "version": "1.0.190",
   "description": "A bundle of TypeScript utility classes and functions",
   "type": "module",
   "main": "dist/index.js",
@@ -18,7 +18,8 @@
     "build:ts": "tsc --sourceMap --inlineSources",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
     "build:prepare": "bun run clean && bun run generate-indexes && bun run format:generated",
-    "build": "bun run build:prepare && bun run build:ts && bun run build:types",
+    "build": "bun run build:prepare && bun run build:ts && bun run build:types && bun run build:fix-imports",
+    "build:fix-imports": "bun scripts/fix-esm-imports.ts",
     "test": "bun test",
     "release": "./scripts/release.sh",
     "deploy": "./scripts/release.sh",
