@@ -19,16 +19,16 @@ export * from "./server/bun/router/controller-discovery";
 export * from "./server/bun/router/routes";
 export * from "./server/bun/router/router";
 export * from "./server/bun/router/router.internal";
-export * from "./server/bun/websocket/websocket.guards";
-export * from "./server/bun/websocket/Client";
 export * from "./server/bun/websocket/Websocket";
-export * from "./server/bun/websocket/websocket.enums";
-export * from "./server/bun/websocket/websocket.types";
+export * from "./server/bun/websocket/websocket.guards";
 export * from "./server/bun/websocket/Message";
 export * from "./server/bun/websocket/Channel";
+export * from "./server/bun/websocket/Client";
+export * from "./server/bun/websocket/websocket.enums";
+export * from "./server/bun/websocket/websocket.types";
 export * from "./utils/Rxjs";
-export * from "./utils/Guards";
 export * from "./utils/Lib";
+export * from "./utils/Guards";
 export * from "./utils/Console";
 
 // Export default classes
@@ -42,12 +42,12 @@ export { default as Service } from "./server/service";
 export { default as Database } from "./server/base/base.database";
 export { default as Router } from "./server/bun/router/router";
 export { default as Router_Internal } from "./server/bun/router/router.internal";
-export { default as Client } from "./server/bun/websocket/Client";
 export { default as Websocket } from "./server/bun/websocket/Websocket";
 export { default as Message } from "./server/bun/websocket/Message";
 export { default as Channel } from "./server/bun/websocket/Channel";
-export { default as Guards } from "./utils/Guards";
+export { default as Client } from "./server/bun/websocket/Client";
 export { default as Lib } from "./utils/Lib";
+export { default as Guards } from "./utils/Guards";
 export { default as Console } from "./utils/Console";
 
 // Re-export specific items for backward compatibility

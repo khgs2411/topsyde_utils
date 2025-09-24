@@ -4,9 +4,19 @@ import { E_IS } from "../enums";
 import Throwable from "../throwable";
 
 class Lib {
+	private static GetLogSource() {
+		const stack = new Error().stack;
+		const callerLine = stack?.split("\n")[2];
+		const fileMatch = callerLine?.match(/([^\/\\]+\.(ts|js)):/);
+		const fileName = fileMatch ? fileMatch[1] : "unknown";
+		return fileName;
+	}
+
 	public static Log(...args: any) {
 		const timestamp = new Date().toLocaleTimeString();
-		console.log(`[${timestamp}]:`, ...args);
+		const fileName = Lib.GetLogSource();
+		console.log("File Name: ", fileName);
+		console.log(`[${timestamp} - ${fileName}]`, ...args);
 	}
 
 	public static LogObject(object: any, text?: string) {
