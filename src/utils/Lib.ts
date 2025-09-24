@@ -4,9 +4,17 @@ import { E_IS } from "../enums";
 import Throwable from "../throwable";
 
 class Lib {
-	private static GetLogSource() {
-		const stack = new Error().stack;
-		const callerLine = stack?.split("\n")[2];
+	private static GetLogSource(skipFrames: number = 1) {
+		const error = new Error();
+		// Use Error.captureStackTrace to exclude this function from the stack
+		Error.captureStackTrace(error, Lib.GetLogSource);
+
+		const stack = error.stack;
+		if (!stack) return "unknown";
+
+		const stackLines = stack.split("\n");
+		// Skip the calling log method (Log, Warn, etc.) + any additional frames
+		const callerLine = stackLines[skipFrames + 1];
 		const fileMatch = callerLine?.match(/([^\/\\]+\.(ts|js)):/);
 		const fileName = fileMatch ? fileMatch[1] : "unknown";
 		return fileName;
@@ -26,12 +34,14 @@ class Lib {
 
 	public static Warn(...args: any) {
 		const timestamp = new Date().toLocaleTimeString();
-		console.error(`[${timestamp}] Handled Error: `, ...args);
+		const fileName = Lib.GetLogSource();
+		console.error(`[${timestamp} - ${fileName}] Handled Error: `, ...args);
 	}
 
 	public static $Log(...args: any) {
 		const timestamp = new Date().toLocaleTimeString();
-		console.error(`[${timestamp}]`, ...args);
+		const fileName = Lib.GetLogSource();
+		console.error(`[${timestamp} - ${fileName}]`, ...args);
 	}
 
 	public static secondsToMilliseconds(seconds: number): number {
