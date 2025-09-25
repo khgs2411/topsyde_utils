@@ -1,6 +1,6 @@
 {
   "name": "topsyde-utils",
-  "version": "1.0.195",
+  "version": "1.0.196",
   "description": "A bundle of TypeScript utility classes and functions",
   "type": "module",
   "main": "dist/index.js",
