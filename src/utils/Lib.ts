@@ -23,7 +23,6 @@ class Lib {
 	public static Log(...args: any) {
 		const timestamp = new Date().toLocaleTimeString();
 		const fileName = Lib.GetLogSource();
-		console.log("File Name: ", fileName);
 		console.log(`[${timestamp} - ${fileName}]`, ...args);
 	}
 
