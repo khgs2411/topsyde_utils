@@ -484,6 +484,23 @@ class Lib {
 	public static ToPascalCase(str: string): string {
 		return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => (index === 0 ? word.toUpperCase() : word.toLowerCase())).replace(/\s+/g, "");
 	}
+
+	public static FormatNumber(num: number, decimalPlaces?: number, separator: string = ","): string {
+		let [integerPart, decimalPart] = num.toString().split(".");
+
+		// Add thousands separators to integer part
+		integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
+
+		// Handle decimal places
+		if (decimalPlaces !== undefined) {
+			const fixed = num.toFixed(decimalPlaces);
+			const [fixedInteger, fixedDecimal] = fixed.split(".");
+			integerPart = fixedInteger.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
+			return fixedDecimal ? `${integerPart}.${fixedDecimal}` : integerPart;
+		}
+
+		return decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+	}
 }
 
 export default Lib;

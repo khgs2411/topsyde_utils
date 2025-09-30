@@ -1,7 +1,6 @@
 import * as app from "../server/bun/websocket";
 import { WebsocketStructuredMessage } from "../server/bun/websocket/websocket.types";
 import Singleton from "../singleton";
-import Channel from "../server/bun/websocket/Channel";
 
 describe("Websocket Tests", () => {
 	const _Websocket = app.Websocket;
@@ -30,7 +29,9 @@ describe("Websocket Tests", () => {
 		// Test broadcasting a message
 		const message: WebsocketStructuredMessage = {
 			type: "test",
-			content: "Hello from test",
+			content: {
+				text: "Hello, World!",
+			},
 		};
 
 		// This should work because the server is set
@@ -45,7 +46,7 @@ describe("Websocket Tests", () => {
 		// This should log a warning but not throw an error
 		const message: WebsocketStructuredMessage = {
 			type: "test",
-			content: "This should warn but not error",
+			content: { text: "This should warn but not error" },
 		};
 
 		// expect newWs.server.publish("global", JSON.stringify(message)); to throw an error
@@ -79,7 +80,7 @@ describe("Websocket Tests", () => {
 		// Test publishing a message to all channels
 		const message: WebsocketStructuredMessage = {
 			type: "test",
-			content: "Broadcast to all channels",
+			content: { text: "Broadcast to all channels" },
 		};
 
 		_Websocket.BraodcastAll(message);
@@ -139,7 +140,7 @@ describe("Websocket Tests", () => {
 		// Test broadcasting a message through the custom class
 		const message: WebsocketStructuredMessage = {
 			type: "test",
-			content: "Hello from custom test",
+			content: { text: "Hello from custom test" },
 		};
 
 		// This should use the overridden Broadcast method
@@ -193,7 +194,7 @@ describe("Websocket Tests", () => {
 		// Test broadcasting a message
 		const message: WebsocketStructuredMessage = {
 			type: "test",
-			content: "Hello from app test",
+			content: { text: "Hello from app test" },
 		};
 
 		// This should work because the server is set
