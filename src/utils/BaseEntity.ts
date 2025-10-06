@@ -1,5 +1,4 @@
 import { ClassConstructor, instanceToPlain, plainToInstance } from "class-transformer";
-import { validateSync, type ValidationError } from "class-validator";
 import { Dto } from "./BaseDto";
 
 export default abstract class BaseEntity {
@@ -38,13 +37,8 @@ export default abstract class BaseEntity {
 	 * @param data - Partial data to update
 	 * @param validate - Whether to validate after update (default: true)
 	 */
-	public update<T extends BaseEntity>(this: T, data: Partial<T>, validate: boolean = true): T {
+	public update<T extends BaseEntity>(this: T, data: Partial<T>): T {
 		const updated = Object.assign(Object.create(Object.getPrototypeOf(this)), this, data);
-
-		if (validate) {
-			updated.validate();
-		}
-
 		return updated;
 	}
 }
