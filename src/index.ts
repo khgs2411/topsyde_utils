@@ -32,6 +32,7 @@ export * from "./utils/Guards";
 export * from "./utils/BaseEntity";
 export * from "./utils/Console";
 export * from "./utils/BaseDto";
+export * from "./utils/dto_validators/IsNumberOrRangeConstraint";
 
 // Export default classes
 export { default as Singleton } from "./singleton";
