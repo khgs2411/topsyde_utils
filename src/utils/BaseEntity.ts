@@ -26,6 +26,10 @@ export default abstract class BaseEntity {
 
 	/**
 	 * Creates a new entity instance from DTO (infers class from `this`)
+	 *
+	 * NOTE: This is a BASE implementation that uses plainToInstance.
+	 * Derived classes should override if they need custom construction logic.
+	 *
 	 * @param dto - DTO to create entity from
 	 */
 	public static FromDto<T extends BaseEntity>(this: ClassConstructor<T>, dto: Dto): T {
@@ -37,6 +41,9 @@ export default abstract class BaseEntity {
 	 * Creates multiple entities from DTOs
 	 */
 	public static FromDtos<T extends BaseEntity>(this: ClassConstructor<T>, dtos: Dto[]): T[] {
-		return plainToInstance(this, dtos.map((dto) => dto.toJSON()));
+		return plainToInstance(
+			this,
+			dtos.map((dto) => dto.toJSON()),
+		);
 	}
 }
