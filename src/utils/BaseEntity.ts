@@ -25,20 +25,18 @@ export default abstract class BaseEntity {
 	}
 
 	/**
-	 * Creates a new entity instance from DTO with validation
-	 * @param cls - Entity class constructor
+	 * Creates a new entity instance from DTO (infers class from `this`)
 	 * @param dto - DTO to create entity from
-	 * @param validate - Whether to validate after creation (default: true)
 	 */
-	public static FromDto<T extends BaseEntity>(cls: ClassConstructor<T>, dto: Dto): T {
-		const instance = plainToInstance(cls, dto.toJSON());
+	public static FromDto<T extends BaseEntity>(this: ClassConstructor<T>, dto: Dto): T {
+		const instance = plainToInstance(this, dto.toJSON());
 		return instance;
 	}
 
 	/**
 	 * Creates multiple entities from DTOs
 	 */
-	public static FromDtos<T extends BaseEntity>(cls: ClassConstructor<T>, dtos: Dto[]): T[] {
-		return dtos.map((dto) => BaseEntity.FromDto(cls, dto));
+	public static FromDtos<T extends BaseEntity>(this: ClassConstructor<T>, dtos: Dto[]): T[] {
+		return plainToInstance(this, dtos.map((dto) => dto.toJSON()));
 	}
 }

@@ -56,13 +56,8 @@ export abstract class Dto {
 	 * @param options - Class transformer options
 	 * @returns New instance of the DTO
 	 */
-	public static Create<T extends Dto>(
-		this: ClassConstructor<T>, // 🔑 Key change: use 'this' parameter
-		data: Record<string, unknown>,
-		options: ClassTransformOptions = {},
-	): T {
+	public static Create<T extends Dto>(this: ClassConstructor<T>, data: Record<string, unknown>, options: ClassTransformOptions = {}): T {
 		const instance = plainToInstance(this, data, {
-			// 🔑 Use 'this' instead of 'cls'
 			...Dto.defaultTransformOptions,
 			...options,
 		});
