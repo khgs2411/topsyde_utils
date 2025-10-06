@@ -58,7 +58,7 @@ export abstract class Dto {
 	 * @returns New instance of the DTO
 	 * @throws ValidationError[] if validation fails and validate is true
 	 */
-	static create<T extends Dto>(cls: ClassConstructor<T>, data: Record<string, unknown>, options: ClassTransformOptions = {}): T {
+	static create<T extends Dto, D extends Record<string, unknown>>(cls: ClassConstructor<T>, data: D, options: ClassTransformOptions = {}): T {
 		const instance = plainToInstance(cls, data, {
 			...Dto.defaultTransformOptions,
 			...options,
@@ -74,7 +74,7 @@ export abstract class Dto {
 	 * @param options - Class transformer options for controlling exposure and transformation
 	 * @returns Array of DTO instances
 	 */
-	static createMany<T extends Dto>(cls: ClassConstructor<T>, dataArray: Record<string, unknown>[], options: ClassTransformOptions = {}): T[] {
+	static createMany<T extends Dto, D extends Record<string, unknown>>(cls: ClassConstructor<T>, dataArray: D[], options: ClassTransformOptions = {}): T[] {
 		return dataArray.map((data) => Dto.create(cls, data, options));
 	}
 }

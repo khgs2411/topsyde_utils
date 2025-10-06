@@ -29,7 +29,9 @@ export * from "./server/bun/websocket/websocket.types";
 export * from "./utils/Rxjs";
 export * from "./utils/Lib";
 export * from "./utils/Guards";
+export * from "./utils/BaseEntity";
 export * from "./utils/Console";
+export * from "./utils/BaseDto";
 
 // Export default classes
 export { default as Singleton } from "./singleton";
@@ -48,6 +50,7 @@ export { default as Channel } from "./server/bun/websocket/Channel";
 export { default as Client } from "./server/bun/websocket/Client";
 export { default as Lib } from "./utils/Lib";
 export { default as Guards } from "./utils/Guards";
+export { default as BaseEntity } from "./utils/BaseEntity";
 export { default as Console } from "./utils/Console";
 
 // Re-export specific items for backward compatibility

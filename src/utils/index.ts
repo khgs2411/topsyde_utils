@@ -4,7 +4,10 @@
 export * from './Rxjs';
 export * from './Lib';
 export * from './Guards';
+export * from './BaseEntity';
 export * from './Console';
+export * from './BaseDto';
 export { default as Lib } from './Lib';
 export { default as Guards } from './Guards';
+export { default as BaseEntity } from './BaseEntity';
 export { default as Console } from './Console';
