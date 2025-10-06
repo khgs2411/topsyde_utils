@@ -132,13 +132,35 @@ else
   echo -e "${YELLOW}WARNING: Tests were skipped. This is not recommended.${NC}"
 fi
 
+# Function to revert version on failure
+revert_version() {
+  echo -e "${YELLOW}Reverting package.json to version $CURRENT_VERSION...${NC}"
+  npm version --no-git-tag-version "$CURRENT_VERSION" >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Version reverted successfully${NC}"
+  else
+    echo -e "${RED}WARNING: Failed to revert version automatically. Please manually set version to $CURRENT_VERSION in package.json${NC}"
+  fi
+}
 
-# Build the package first, before bumping the version
+# Bump version BEFORE building (so build has correct version)
+if [ "$DRY_RUN" = false ] && [ "$TEST_PUBLISH" = false ]; then
+  echo -e "${YELLOW}Updating version to $NEW_VERSION in package.json...${NC}"
+  bun run version:bump $VERSION_TYPE || error_exit "Failed to update version"
+  echo -e "${GREEN}Version updated successfully${NC}"
+fi
+
+# Build the package with the new version
 echo -e "${YELLOW}Building the package...${NC}"
-bun run build || error_exit "Build failed"
+if ! bun run build; then
+  if [ "$DRY_RUN" = false ] && [ "$TEST_PUBLISH" = false ]; then
+    revert_version
+  fi
+  error_exit "Build failed"
+fi
 
-# Publish the package with the current version
-echo -e "${YELLOW}Publishing the package...${NC}"
+# Publish the package with the new version
+echo -e "${YELLOW}Publishing version $NEW_VERSION...${NC}"
 PUBLISH_SUCCESS=false
 
 if [ "$DRY_RUN" = true ]; then
@@ -148,22 +170,27 @@ if [ "$DRY_RUN" = true ]; then
 elif [ "$TEST_PUBLISH" = true ]; then
   echo -e "${YELLOW}TEST PUBLISH: Simulating publish without actually publishing to npm${NC}"
   echo -e "${YELLOW}Command that would run: bun publish --tag $TAG --no-git-checks${NC}"
-  npm pack --dry-run && PUBLISH_SUCCESS=true || error_exit "Package creation failed"
+  npm pack --dry-run && PUBLISH_SUCCESS=true || PUBLISH_SUCCESS=false
 else
-  bun publish --tag $TAG --no-git-checks --silent && PUBLISH_SUCCESS=true || error_exit "Publishing failed"
+  bun publish --tag $TAG --no-git-checks --silent && PUBLISH_SUCCESS=true || PUBLISH_SUCCESS=false
 fi
 
-# Only bump the version if publishing succeeded AND we're not in dry run or test publish mode
+# Handle publish result
 if [ "$PUBLISH_SUCCESS" = true ]; then
   if [ "$DRY_RUN" = false ] && [ "$TEST_PUBLISH" = false ]; then
-    echo -e "${YELLOW}Publishing successful! Updating version in package.json...${NC}"
-    bun run version:bump $VERSION_TYPE || error_exit "Failed to update version"
+    echo -e "${GREEN}Publishing successful! Committing version bump...${NC}"
+    git add package.json
+    git commit -m "Bumps package version to $NEW_VERSION" || error_exit "Failed to commit version bump"
+    echo -e "${GREEN}Version bump committed successfully${NC}"
   else
-    echo -e "${YELLOW}Publishing simulation successful! Version will not be updated in dry run or test mode.${NC}"
+    echo -e "${YELLOW}Publishing simulation successful! Version will not be committed in dry run or test mode.${NC}"
   fi
 else
-  # This should never be reached because error_exit will exit the script
-  echo -e "${RED}Publishing failed. Version will not be updated.${NC}"
+  # Publishing failed - revert version
+  if [ "$DRY_RUN" = false ] && [ "$TEST_PUBLISH" = false ]; then
+    revert_version
+  fi
+  error_exit "Publishing failed"
 fi
 
 # Calculate elapsed time
@@ -186,14 +213,15 @@ DTS_SIZE=$(du -ch $(find dist -name "*.d.ts" -type f) | tail -n 1 | cut -f1)
 if [ "$DRY_RUN" = true ]; then
   echo -e "${GREEN}Dry run completed successfully!${NC}"
   echo -e "${GREEN}Current version:${NC} $CURRENT_VERSION (unchanged)"
-  echo -e "${GREEN}Simulated new version:${NC} $NEW_VERSION"
+  echo -e "${GREEN}Would publish version:${NC} $NEW_VERSION"
 elif [ "$TEST_PUBLISH" = true ]; then
   echo -e "${GREEN}Test publish completed successfully!${NC}"
   echo -e "${GREEN}Current version:${NC} $CURRENT_VERSION (unchanged)"
-  echo -e "${GREEN}Simulated new version:${NC} $NEW_VERSION"
+  echo -e "${GREEN}Would publish version:${NC} $NEW_VERSION"
 else
   echo -e "${GREEN}Package published successfully!${NC}"
-  echo -e "${GREEN}New version:${NC} $NEW_VERSION"
+  echo -e "${GREEN}Published version:${NC} $NEW_VERSION"
+  echo -e "${GREEN}Previous version:${NC} $CURRENT_VERSION"
 fi
 echo -e "${GREEN}Tag:${NC} $TAG"
 echo -e "${GREEN}Time taken:${NC} ${MINUTES}m ${SECONDS}s"

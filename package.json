@@ -52,9 +52,9 @@
       "types": "./dist/server/bun/websocket/index.d.ts",
       "default": "./dist/server/bun/websocket/index.js"
     },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "default": "./dist/utils/index.js"
+    "./utils/dto_validators": {
+      "types": "./dist/utils/dto_validators/index.d.ts",
+      "default": "./dist/utils/dto_validators/index.js"
     }
   },
   "typesVersions": {
@@ -74,8 +74,8 @@
       "server/bun/websocket": [
         "./dist/server/bun/websocket/index.d.ts"
       ],
-      "utils": [
-        "./dist/utils/index.d.ts"
+      "utils/dto_validators": [
+        "./dist/utils/dto_validators/index.d.ts"
       ]
     }
   },
