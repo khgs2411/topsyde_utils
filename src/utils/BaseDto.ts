@@ -51,15 +51,18 @@ export abstract class Dto {
 	}
 
 	/**
-	 * Creates a new instance of the DTO with validation
-	 * @param cls - The class constructor to create an instance from
+	 * Creates a new instance of the DTO with validation (infers class from `this`)
 	 * @param data - Data to create the DTO from
-	 * @param options - Class transformer options for controlling exposure and transformation
+	 * @param options - Class transformer options
 	 * @returns New instance of the DTO
-	 * @throws ValidationError[] if validation fails and validate is true
 	 */
-	public static Create<T extends Dto>(cls: ClassConstructor<T>, data: Record<string, unknown>, options: ClassTransformOptions = {}): T {
-		const instance = plainToInstance(cls, data, {
+	public static Create<T extends Dto>(
+		this: ClassConstructor<T>, // 🔑 Key change: use 'this' parameter
+		data: Record<string, unknown>,
+		options: ClassTransformOptions = {},
+	): T {
+		const instance = plainToInstance(this, data, {
+			// 🔑 Use 'this' instead of 'cls'
 			...Dto.defaultTransformOptions,
 			...options,
 		});
@@ -69,12 +72,11 @@ export abstract class Dto {
 
 	/**
 	 * Creates an array of DTOs from an array of plain objects
-	 * @param cls - The class constructor to create instances from
-	 * @param dataArray - Array of data to create DTOs from
-	 * @param options - Class transformer options for controlling exposure and transformation
-	 * @returns Array of DTO instances
 	 */
-	public static CreateMany<T extends Dto>(cls: ClassConstructor<T>, dataArray: Record<string, unknown>[], options: ClassTransformOptions = {}): T[] {
-		return dataArray.map((data) => Dto.Create(cls, data, options));
+	public static CreateMany<T extends Dto>(this: ClassConstructor<T>, dataArray: Record<string, unknown>[], options: ClassTransformOptions = {}): T[] {
+		return plainToInstance(this, dataArray, {
+			...Dto.defaultTransformOptions,
+			...options,
+		}) as T[];
 	}
 }
