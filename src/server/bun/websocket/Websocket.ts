@@ -111,7 +111,7 @@ export default class Websocket extends Singleton {
 		if (this._ws_interface_handlers.message) return this._ws_interface_handlers.message(ws, message);
 
 		ws.send("This is the message from the server: " + message);
-		Websocket.BraodcastAll({ type: "client.message.received", content: { message } });
+		Websocket.BroadCastAll({ type: "client.message.received", content: { message } });
 	};
 
 	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
@@ -196,7 +196,7 @@ export default class Websocket extends Singleton {
 	 * @param message - The message
 	 * @param args - The arguments
 	 */
-	public static BraodcastAll(message: WebsocketStructuredMessage, ...args: any[]) {
+	public static BroadCastAll(message: WebsocketStructuredMessage, ...args: any[]) {
 		const ws = this.GetInstance<Websocket>();
 		ws._channels.forEach((channel) => channel.broadcast(message, ...args));
 	}
@@ -294,17 +294,5 @@ export default class Websocket extends Singleton {
 	public static CreateClient(entity: I_WebsocketEntity): I_WebsocketClient {
 		const ws = this.GetInstance<Websocket>();
 		return ws.createClient(entity);
-	}
-
-	/**
-	 * Generate a message
-	 * @returns The generated message
-	 */
-	public static GenerateMessage(): WebsocketStructuredMessage {
-		const msg: WebsocketStructuredMessage = {
-			type: "",
-			content: {},
-		};
-		return msg;
 	}
 }

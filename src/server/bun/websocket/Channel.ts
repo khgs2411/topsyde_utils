@@ -1,14 +1,7 @@
 import { Guards, Lib } from "../../../utils";
 import Message from "./Message";
 import Websocket from "./Websocket";
-import type {
-	BroadcastOptions,
-	I_WebsocketChannel,
-	I_WebsocketClient,
-	I_WebsocketEntity,
-	WebsocketChannel,
-	WebsocketMessage
-} from "./websocket.types";
+import type { BroadcastOptions, I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketChannel, WebsocketMessage } from "./websocket.types";
 
 export default class Channel<T extends Websocket = Websocket> implements I_WebsocketChannel<T> {
 	public createdAt: Date = new Date();
@@ -28,7 +21,6 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		this.metadata = metadata ?? {};
 		this.ws = ws;
 		this.message = new Message();
-		
 	}
 
 	public broadcast(message: WebsocketMessage | string, options?: BroadcastOptions) {
@@ -39,7 +31,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			};
 			message = msg;
 		}
-		const output = this.message.create(message, { ...options, channel: this.name });
+		const output = this.message.create(message, { ...options, channel: this.id });
 		if (options) {
 			// Include channel metadata if requested
 			if (options.includeMetadata) {

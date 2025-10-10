@@ -55,7 +55,6 @@ export default class Client implements I_WebsocketClient {
 		this._id = entity.id;
 		this._name = entity.name;
 		this._ws = entity.ws;
-		this.ws = entity.ws;
 		this._channels = new Map();
 	}
 
