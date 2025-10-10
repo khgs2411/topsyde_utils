@@ -45,7 +45,7 @@ export { default as Service } from "./server/service";
 export { default as Database } from "./server/base/base.database";
 export { default as Router } from "./server/bun/router/router";
 export { default as Router_Internal } from "./server/bun/router/router.internal";
-export { default as Websocket } from "./server/bun/websocket/Websocket";
+export { default as GameWebsocket } from "./server/bun/websocket/Websocket";
 export { default as Message } from "./server/bun/websocket/Message";
 export { default as Channel } from "./server/bun/websocket/Channel";
 export { default as Client } from "./server/bun/websocket/Client";
@@ -65,7 +65,7 @@ export { RxjsDataType, NamespaceActions, MultiNamespaceActions } from "./client/
 export { ControllerResponse, ControllerAction, ControllerMap, ControllerOptions } from "./server/controller";
 export { Routes } from "./server/bun/router/routes";
 export { WebsocketConstructorOptions, I_WebsocketConstructor } from "./server/bun/websocket/Websocket";
-export { E_WebsocketMessageType, E_WebsocketMessagePriority } from "./server/bun/websocket/websocket.enums";
+export { E_WebsocketMessageType, E_WebsocketMessagePriority, E_ClientState } from "./server/bun/websocket/websocket.enums";
 export {
 	BunWebsocketMessage,
 	WebsocketChannel,
@@ -80,6 +80,8 @@ export {
 	I_WebsocketClient,
 	I_WebsocketChannelEntity,
 	BroadcastOptions,
+	AddMemberResult,
+	AddMemberOptions,
 	I_WebsocketChannel,
 	WebsocketInterfaceHandlers,
 	I_WebsocketInterface,
