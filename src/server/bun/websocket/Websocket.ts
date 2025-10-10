@@ -146,7 +146,7 @@ export default class Websocket extends Singleton {
 
 		// Client handles its own joining logic with rollback support
 		if (!client.joinChannel(global)) {
-			Lib.Warn(`Failed to add client ${client.id} to global channel`);
+			throw new Error("Failed to join global channel");
 		}
 
 		// Mark as fully connected
@@ -336,9 +336,7 @@ export default class Websocket extends Singleton {
 	 */
 	public static GetConnectedClients(): I_WebsocketClient[] {
 		const ws = this.GetInstance<Websocket>();
-		return Array.from(ws._clients.values()).filter(
-			client => client.state === "connected"
-		);
+		return Array.from(ws._clients.values()).filter((client) => client.state === "connected");
 	}
 
 	/**
@@ -357,10 +355,18 @@ export default class Websocket extends Singleton {
 
 		for (const client of ws._clients.values()) {
 			switch (client.state) {
-				case "connecting": stats.connecting++; break;
-				case "connected": stats.connected++; break;
-				case "disconnecting": stats.disconnecting++; break;
-				case "disconnected": stats.disconnected++; break;
+				case "connecting":
+					stats.connecting++;
+					break;
+				case "connected":
+					stats.connected++;
+					break;
+				case "disconnecting":
+					stats.disconnecting++;
+					break;
+				case "disconnected":
+					stats.disconnected++;
+					break;
 			}
 		}
 
