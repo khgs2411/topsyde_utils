@@ -28,6 +28,26 @@ export interface I_WebsocketConstructor {
 	options?: WebsocketConstructorOptions;
 }
 
+/**
+ * Websocket - Singleton managing clients, channels, and message routing
+ *
+ * ## API Design: Static vs Instance
+ * - **Static methods**: Use in application code (e.g., `Websocket.Broadcast()`, `Websocket.GetClient()`)
+ * - **Instance methods**: Use when extending the class (e.g., `protected createClient()`)
+ *
+ * Static methods are facades that call the singleton instance internally.
+ *
+ * @example
+ * // Application code - use static methods
+ * Websocket.Broadcast("lobby", { type: "chat", content: { message: "Hi!" } });
+ *
+ * // Extension - override instance methods
+ * class GameWebsocket extends Websocket {
+ *   protected createClient(entity: I_WebsocketEntity) {
+ *     return new GameClient(entity);
+ *   }
+ * }
+ */
 export default class Websocket extends Singleton {
 	protected _channels: WebsocketChannel;
 	protected _clients: Map<string, I_WebsocketClient> = new Map();
@@ -124,7 +144,14 @@ export default class Websocket extends Singleton {
 		this._clients.set(client.id, client);
 
 		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
-		global.addMember(client);
+
+		// Client handles its own joining logic with rollback support
+		if (!client.joinChannel(global)) {
+			Lib.Warn(`Failed to add client ${client.id} to global channel`);
+		}
+
+		// Mark as fully connected
+		client.markConnected();
 
 		if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);
 	};
@@ -132,15 +159,23 @@ export default class Websocket extends Singleton {
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>, code: number, reason: string) => {
 		if (this._options.debug) Lib.Log("Client disconnected", ws.data);
 
-		if (this._ws_interface_handlers.close) this._ws_interface_handlers.close(ws, code, reason);
-
 		const client = this._clients.get(ws.data.id);
 		if (!client) return;
 
+		// Mark as disconnecting
+		client.markDisconnecting();
+
+		if (this._ws_interface_handlers.close) this._ws_interface_handlers.close(ws, code, reason);
+
+		// Remove from all channels
 		this._channels.forEach((channel) => {
 			channel.removeMember(client);
 		});
 
+		// Mark as disconnected
+		client.markDisconnected();
+
+		// Remove from registry
 		this._clients.delete(ws.data.id);
 	};
 
@@ -294,5 +329,42 @@ export default class Websocket extends Singleton {
 	public static CreateClient(entity: I_WebsocketEntity): I_WebsocketClient {
 		const ws = this.GetInstance<Websocket>();
 		return ws.createClient(entity);
+	}
+
+	/**
+	 * Get all connected clients (excluding connecting/disconnecting)
+	 * @returns Array of connected clients
+	 */
+	public static GetConnectedClients(): I_WebsocketClient[] {
+		const ws = this.GetInstance<Websocket>();
+		return Array.from(ws._clients.values()).filter(
+			client => client.state === "connected"
+		);
+	}
+
+	/**
+	 * Get client statistics by state
+	 * @returns Object with counts by state
+	 */
+	public static GetClientStats() {
+		const ws = this.GetInstance<Websocket>();
+		const stats = {
+			total: ws._clients.size,
+			connecting: 0,
+			connected: 0,
+			disconnecting: 0,
+			disconnected: 0,
+		};
+
+		for (const client of ws._clients.values()) {
+			switch (client.state) {
+				case "connecting": stats.connecting++; break;
+				case "connected": stats.connected++; break;
+				case "disconnecting": stats.disconnecting++; break;
+				case "disconnected": stats.disconnected++; break;
+			}
+		}
+
+		return stats;
 	}
 }

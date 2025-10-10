@@ -3,22 +3,27 @@ import {
 	WebsocketStructuredMessage,
 	WebsocketMessage,
 	WebsocketMessageOptions,
-	I_WebsocketChannel,
 	I_WebsocketClient,
 	WebsocketEntityData,
 } from "./websocket.types";
 
 export default class Message {
-	private messageTemplate: WebsocketStructuredMessage<any>;
+	// Shared template for all messages
+	private static readonly MESSAGE_TEMPLATE: WebsocketStructuredMessage<any> = {
+		type: "",
+		content: {},
+		channel: "",
+		timestamp: ""
+	};
 
-	constructor() {
-		this.messageTemplate = { type: "", content: {}, channel: "", timestamp: "" };
-	}
+	// Private constructor to prevent instantiation
+	private constructor() {}
 
-	public create(message: WebsocketMessage, options?: WebsocketMessageOptions): WebsocketStructuredMessage {
-		// Clone the template (faster than creating new objects)
-		const output = Object.assign({}, this.messageTemplate);
-		// Set the dynamic properties in a single pass
+	public static Create(message: WebsocketMessage, options?: WebsocketMessageOptions): WebsocketStructuredMessage {
+		// Clone the template
+		const output = Object.assign({}, Message.MESSAGE_TEMPLATE);
+
+		// Set the dynamic properties
 		output.type = message.type;
 		output.channel = message.channel || options?.channel || "N/A";
 
@@ -31,7 +36,7 @@ export default class Message {
 			output.content = {};
 		}
 
-		// Process options in a single pass if provided
+		// Process options if provided
 		if (options) {
 			// Add data if provided
 			if (options.data !== undefined) {
@@ -43,15 +48,14 @@ export default class Message {
 					output.content.data = options.data;
 				}
 			}
+
 			// Add client information if provided
 			if (options.client && Guards.IsObject(options.client) && Guards.IsString(options.client.id, true)) {
 				output.client = {
 					id: options.client.id,
 					name: options.client.name,
 				};
-			} /* else {
-				delete output.client;
-			} */
+			}
 
 			// Include channel metadata if requested
 			if (options.includeMetadata !== false) output.metadata = options.metadata;
@@ -81,8 +85,7 @@ export default class Message {
 
 			// Apply custom transformation if provided
 			if (options.transform) {
-				const transformed = options.transform(output);
-				return transformed;
+				return options.transform(output);
 			}
 		} else {
 			output.timestamp = new Date().toISOString();
@@ -91,19 +94,21 @@ export default class Message {
 		return output;
 	}
 
-	public createWhisper(message: Omit<WebsocketMessage, "type">, options?: WebsocketMessageOptions) {
-		return this.create({ ...message, content: message.content, channel: message.channel, type: "whisper" }, options);
+	public static CreateWhisper(message: Omit<WebsocketMessage, "type">, options?: WebsocketMessageOptions): WebsocketStructuredMessage {
+		return Message.Create({ ...message, content: message.content, channel: message.channel, type: "whisper" }, options);
 	}
 
-	public send(target: I_WebsocketClient, message: WebsocketStructuredMessage): void;
-	public send(target: I_WebsocketClient, message: WebsocketMessage, options?: WebsocketMessageOptions): void;
-	public send(target: I_WebsocketClient, message: WebsocketStructuredMessage | WebsocketMessage, options?: WebsocketMessageOptions): void {
-		target.send(this.create(message, options));
+	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T): string | T {
+		return transform ? transform(message) : JSON.stringify(message);
 	}
 
-	public alert(target: I_WebsocketClient, reason: string, client?: WebsocketEntityData) {
+	public static Send(target: I_WebsocketClient, message: WebsocketMessage, options?: WebsocketMessageOptions): void {
+		target.send(Message.Create(message, options));
+	}
+
+	public static Alert(target: I_WebsocketClient, reason: string, client?: WebsocketEntityData): void {
 		target.send(
-			this.create(
+			Message.Create(
 				{
 					content: {
 						message: reason,
@@ -114,20 +119,5 @@ export default class Message {
 				{ client },
 			),
 		);
-	}
-
-	public serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T) {
-		return transform ? transform(message) : JSON.stringify(message);
-	}
-
-	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform: (message: WebsocketStructuredMessage) => T): T;
-	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T): string | T;
-	public static Serialize<T = string>(message: WebsocketStructuredMessage, transform?: (message: WebsocketStructuredMessage) => T): string | T {
-		return transform ? transform(message) : JSON.stringify(message);
-	}
-
-	public static Create(message: WebsocketMessage, options?: WebsocketMessageOptions): WebsocketStructuredMessage{
-		const msg = new Message();
-		return msg.create(message, options);
 	}
 }

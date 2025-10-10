@@ -9,15 +9,33 @@ import type {
 	WebsocketMessageOptions,
 	WebsocketMessage,
 } from "./websocket.types";
-import { E_WebsocketMessageType } from "./websocket.enums";
+import { E_WebsocketMessageType, E_ClientState } from "./websocket.enums";
 import { Guards, Lib } from "../../../utils";
 import Message from "./Message";
 
+/**
+ * Client - Connected WebSocket client with channel membership
+ *
+ * ## Channel Membership
+ * - Maintains own channel list and handles Bun pub/sub subscriptions
+ * - `joinChannel()` adds to channel, subscribes, and handles rollback on failure
+ * - Always use `channel.addMember(client)` in application code, not `client.joinChannel()` directly
+ *
+ * @example
+ * // ✅ Correct
+ * channel.addMember(client);
+ *
+ * // ❌ Incorrect - internal use only
+ * client.joinChannel(channel);
+ */
 export default class Client implements I_WebsocketClient {
 	private _id: string;
 	private _name: string;
 	private _ws: ServerWebSocket<WebsocketEntityData>;
 	private _channels: WebsocketChannel<I_WebsocketChannel>;
+	private _state: E_ClientState;
+	private _connectedAt?: Date;
+	private _disconnectedAt?: Date;
 
 	private set ws(value: ServerWebSocket<WebsocketEntityData>) {
 		this._ws = value;
@@ -51,24 +69,84 @@ export default class Client implements I_WebsocketClient {
 		return this._channels;
 	}
 
+	public get state(): E_ClientState {
+		return this._state;
+	}
+
 	constructor(entity: I_WebsocketEntity) {
 		this._id = entity.id;
 		this._name = entity.name;
 		this._ws = entity.ws;
 		this._channels = new Map();
+		this._state = E_ClientState.CONNECTING;
 	}
 
-	public joinChannel(channel: I_WebsocketChannel, send: boolean = true) {
+	public canReceiveMessages(): boolean {
+		return this._state === E_ClientState.CONNECTED;
+	}
+
+	public markConnected(): void {
+		this._state = E_ClientState.CONNECTED;
+		this._connectedAt = new Date();
+	}
+
+	public markDisconnecting(): void {
+		this._state = E_ClientState.DISCONNECTING;
+	}
+
+	public markDisconnected(): void {
+		this._state = E_ClientState.DISCONNECTED;
+		this._disconnectedAt = new Date();
+	}
+
+	public getConnectionInfo() {
+		return {
+			id: this.id,
+			name: this.name,
+			state: this._state,
+			connectedAt: this._connectedAt,
+			disconnectedAt: this._disconnectedAt,
+			uptime: this._connectedAt ? Date.now() - this._connectedAt.getTime() : 0,
+			channelCount: this._channels.size,
+		};
+	}
+
+	public joinChannel(channel: I_WebsocketChannel, send: boolean = true): boolean {
 		const channel_id = channel.getId();
-		this.subscribe(channel_id);
-		this.channels.set(channel_id, channel);
-		if (send)
-			this.send({
-				type: E_WebsocketMessageType.CLIENT_JOIN_CHANNEL,
-				content: { message: "Welcome to the channel" },
-				channel: channel_id,
-				client: this.whoami(),
-			});
+
+		// Check if already joined
+		if (this.channels.has(channel_id)) {
+			return false;
+		}
+
+		// Try to add to channel first
+		const result = channel.addMember(this);
+		if (!result.success) {
+			return false; // Channel full, already member, or other issue
+		}
+
+		try {
+			// Subscribe to channel's pub/sub topic
+			this.subscribe(channel_id);
+			this.channels.set(channel_id, channel);
+
+			// Send join notification
+			if (send) {
+				this.send({
+					type: E_WebsocketMessageType.CLIENT_JOIN_CHANNEL,
+					content: { message: "Welcome to the channel" },
+					channel: channel_id,
+					client: this.whoami(),
+				});
+			}
+
+			return true;
+		} catch (error) {
+			// Rollback channel membership on failure
+			channel.removeMemberInternal(this);
+			this.channels.delete(channel_id);
+			throw error;
+		}
 	}
 
 	public leaveChannel(channel: I_WebsocketChannel, send: boolean = true) {
@@ -106,14 +184,27 @@ export default class Client implements I_WebsocketClient {
 	public send(message: string, options?: WebsocketMessageOptions): void;
 	public send(message: WebsocketStructuredMessage): void;
 	public send(message: WebsocketStructuredMessage | string, options?: WebsocketMessageOptions): void {
-		if (Guards.IsString(message)) {
-			const msg: WebsocketMessage = {
-				type: "message",
-				content: { message },
-			};
-			message = Message.Create(msg, options);
+		// Check state before sending
+		if (!this.canReceiveMessages()) {
+			Lib.Warn(`Cannot send to client ${this.id} in state ${this._state}`);
+			return;
 		}
-		this.ws.send(JSON.stringify({ client: this.whoami(), ...message }));
+
+		try {
+			if (Guards.IsString(message)) {
+				const msg: WebsocketMessage = {
+					type: "message",
+					content: { message },
+				};
+				message = Message.Create(msg, options);
+			}
+			this.ws.send(JSON.stringify({ client: this.whoami(), ...message }));
+		} catch (error) {
+			Lib.Error(`Failed to send message to client ${this.id}:`, error);
+			if (error instanceof Error && error.message.includes('closed')) {
+				this.markDisconnected();
+			}
+		}
 	}
 
 	public subscribe(channel: string): void {

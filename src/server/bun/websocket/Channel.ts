@@ -1,8 +1,25 @@
 import { Guards, Lib } from "../../../utils";
 import Message from "./Message";
 import Websocket from "./Websocket";
-import type { BroadcastOptions, I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketChannel, WebsocketMessage } from "./websocket.types";
+import type { BroadcastOptions, I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketChannel, WebsocketMessage, AddMemberResult, AddMemberOptions } from "./websocket.types";
+import { E_WebsocketMessageType } from "./websocket.enums";
 
+/**
+ * Channel - Pub/sub topic for WebSocket clients
+ *
+ * ## Membership Contract
+ * - `addMember()` validates capacity and adds to `members` map
+ * - Client drives join via `joinChannel()` which subscribes and handles rollback
+ * - If subscription fails, membership is automatically rolled back
+ * - Member count never exceeds `limit`
+ *
+ * @example
+ * const channel = new Channel("game-1", "Game Room", ws, 10);
+ * const result = channel.addMember(client);
+ * if (result.success) {
+ *   channel.broadcast({ type: "player.joined", content: { player: client.whoami() } });
+ * }
+ */
 export default class Channel<T extends Websocket = Websocket> implements I_WebsocketChannel<T> {
 	public createdAt: Date = new Date();
 	public id: string;
@@ -11,7 +28,6 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	public members: Map<string, I_WebsocketClient>;
 	public metadata: Record<string, string>;
 	public ws: T;
-	private message: Message;
 
 	constructor(id: string, name: string, ws: T, limit?: number, members?: Map<string, I_WebsocketClient>, metadata?: Record<string, string>) {
 		this.id = id;
@@ -20,7 +36,6 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		this.members = members ?? new Map();
 		this.metadata = metadata ?? {};
 		this.ws = ws;
-		this.message = new Message();
 	}
 
 	public broadcast(message: WebsocketMessage | string, options?: BroadcastOptions) {
@@ -31,30 +46,34 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			};
 			message = msg;
 		}
-		const output = this.message.create(message, { ...options, channel: this.id });
-		if (options) {
-			// Include channel metadata if requested
-			if (options.includeMetadata) {
-				output.metadata = options.includeMetadata === true ? this.getMetadata() : this.getFilteredMetadata(options.includeMetadata);
-			}
 
-			// Handle excluded clients if needed
-			if (options.excludeClients && options.excludeClients.length > 0) {
-				// For large channels with many excluded clients, it might be more efficient
-				// to send directly to each client instead of using channel publish
-				if (this.members.size > 10 && options.excludeClients.length > this.members.size / 3) {
-					const serializedMessage = this.message.serialize(output);
-					for (const [clientId, client] of this.members) {
-						if (!options.excludeClients.includes(clientId)) {
-							client.ws.send(serializedMessage);
-						}
+		const output = Message.Create(message, { ...options, channel: this.id });
+
+		// Include channel metadata if requested
+		if (options?.includeMetadata) {
+			output.metadata = options.includeMetadata === true ? this.getMetadata() : this.getFilteredMetadata(options.includeMetadata);
+		}
+
+		const serializedMessage = Message.Serialize(output);
+
+		// If we need to exclude clients, send individually to prevent excluded clients from receiving
+		if (options?.excludeClients && options.excludeClients.length > 0) {
+			const excludeSet = new Set(options.excludeClients); // O(1) lookup
+
+			for (const [clientId, client] of this.members) {
+				if (!excludeSet.has(clientId)) {
+					try {
+						client.ws.send(serializedMessage);
+					} catch (error) {
+						Lib.Warn(`Failed to send to client ${clientId}:`, error);
 					}
-					return;
 				}
 			}
+			return;
 		}
-		// Publish to the channel
-		this.ws.server.publish(this.id, this.message.serialize(output));
+
+		// Otherwise use pub/sub for everyone
+		this.ws.server.publish(this.id, serializedMessage);
 	}
 
 	// Helper method for filtered metadata
@@ -76,11 +95,53 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		return this.members.has(client.id);
 	}
 
-	public addMember(client: I_WebsocketClient) {
-		if (!this.canAddMember()) return false;
-		this.members.set(client.id, client);
-		client.joinChannel(this);
-		return client;
+	public addMember(client: I_WebsocketClient, options?: AddMemberOptions): AddMemberResult {
+		// Check if already a member
+		if (this.members.has(client.id)) {
+			return { success: false, reason: 'already_member' };
+		}
+
+		// Check capacity (atomic check)
+		if (this.members.size >= this.limit) {
+			// Optionally notify client why they can't join
+			if (options?.notify_when_full) {
+				this.notifyChannelFull(client);
+			}
+			return { success: false, reason: 'full' };
+		}
+
+		try {
+			this.members.set(client.id, client);
+			return { success: true, client };
+		} catch (error) {
+			// Rollback
+			this.members.delete(client.id);
+			return {
+				success: false,
+				reason: 'error',
+				error: error instanceof Error ? error : new Error(String(error))
+			};
+		}
+	}
+
+	private notifyChannelFull(client: I_WebsocketClient): void {
+		client.send({
+			type: E_WebsocketMessageType.ERROR,
+			content: {
+				message: `Channel "${this.name}" is full (${this.limit} members)`,
+				code: 'CHANNEL_FULL',
+				channel: this.id
+			}
+		});
+	}
+
+	/**
+	 * Internal method to remove a member without triggering client-side cleanup.
+	 * Used for rollback operations when joinChannel fails.
+	 * @internal
+	 */
+	public removeMemberInternal(client: I_WebsocketClient): void {
+		this.members.delete(client.id);
 	}
 
 	public removeMember(entity: I_WebsocketEntity) {

@@ -20,3 +20,10 @@ export enum E_WebsocketMessagePriority {
 	MEDIUM = 1,
 	HIGH = 2,
 }
+
+export enum E_ClientState {
+	CONNECTING = "connecting",
+	CONNECTED = "connected",
+	DISCONNECTING = "disconnecting",
+	DISCONNECTED = "disconnected",
+}

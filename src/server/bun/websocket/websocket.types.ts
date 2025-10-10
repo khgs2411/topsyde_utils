@@ -1,6 +1,7 @@
 import { ServerWebSocket, WebSocketHandler } from "bun";
 import Channel from "./Channel";
 import Websocket from "./Websocket";
+import { E_ClientState } from "./websocket.enums";
 
 export type BunWebsocketMessage = string | Buffer<ArrayBufferLike>;
 
@@ -102,7 +103,45 @@ export type WebsocketMessage<T extends Record<string, any> = Record<string, any>
 	[key: string]: any;
 };
 
-export type WebsocketStructuredMessage<T extends Record<string, any> = Record<string, any>> = WebsocketMessage<T> & WebsocketMessageOptions;
+/**
+ * Message structure sent over the wire to clients.
+ * This is the actual WebSocket payload format - transport options are NOT included.
+ */
+export type WebsocketStructuredMessage<T extends Record<string, any> = Record<string, any>> = {
+	/** Message type identifier for client-side routing */
+	type: string;
+
+	/** Message payload */
+	content: T;
+
+	/** Channel ID where message originated */
+	channel?: string;
+
+	/** ISO timestamp when message was created */
+	timestamp?: string;
+
+	/** Client information (who sent this) */
+	client?: WebsocketEntityData;
+
+	/** Channel metadata (if included) */
+	metadata?: Record<string, string>;
+
+	/** Message priority for client-side processing */
+	priority?: number;
+
+	/** Expiration timestamp (milliseconds since epoch) */
+	expiresAt?: number;
+
+	/** Any additional custom fields */
+	[key: string]: any;
+};
+
+/**
+ * @deprecated This type incorrectly mixed transport options with wire format.
+ * Use WebsocketStructuredMessage for wire format and WebsocketMessageOptions for options.
+ * This will be removed in a future version.
+ */
+export type deprecated_WebsocketStructuredMessage<T extends Record<string, any> = Record<string, any>> = WebsocketMessage<T> & WebsocketMessageOptions;
 
 export type WebsocketEntityId = string;
 export type WebsocketEntityName = string;
@@ -114,15 +153,21 @@ export interface I_WebsocketEntity extends WebsocketEntityData {
 
 export interface I_WebsocketClient extends I_WebsocketEntity {
 	channels: WebsocketChannel<I_WebsocketChannel>;
+	state: E_ClientState;
 	send(message: string, options?: WebsocketMessageOptions): void;
 	send(message: WebsocketStructuredMessage): void;
 	subscribe(channel: string): any;
-	joinChannel(channel: I_WebsocketChannel, send?: boolean): void;
+	joinChannel(channel: I_WebsocketChannel, send?: boolean): boolean;
 	leaveChannel(channel: I_WebsocketChannel, send?: boolean): void;
 	joinChannels(channels: I_WebsocketChannel[], send?: boolean): void;
 	leaveChannels(channels?: I_WebsocketChannel[], send?: boolean): void;
 	unsubscribe(channel: string): any;
 	whoami(): WebsocketEntityData;
+	canReceiveMessages(): boolean;
+	markConnected(): void;
+	markDisconnecting(): void;
+	markDisconnected(): void;
+	getConnectionInfo(): { id: string; name: string; state: E_ClientState; connectedAt?: Date; disconnectedAt?: Date; uptime: number; channelCount: number };
 }
 
 export interface I_WebsocketChannelEntity<T extends Websocket = Websocket> extends WebsocketEntityData {
@@ -133,6 +178,17 @@ export interface I_WebsocketChannelEntity<T extends Websocket = Websocket> exten
 export type BroadcastOptions = WebsocketMessageOptions & {
 	debug?: boolean;
 };
+
+// Result type for addMember operations
+export type AddMemberResult =
+	| { success: true; client: I_WebsocketClient }
+	| { success: false; reason: 'full' | 'already_member' | 'error'; error?: Error };
+
+// Options for addMember operations
+export type AddMemberOptions = {
+	/** Whether to notify client when channel is full (default: false) */
+	notify_when_full?: boolean;
+};
 export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_WebsocketChannelEntity<T> {
 	limit: number;
 	members: Map<string, I_WebsocketClient>;
@@ -140,7 +196,8 @@ export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_W
 	createdAt: Date;
 	broadcast(message: WebsocketStructuredMessage | string, options?: BroadcastOptions): void;
 	hasMember(client: I_WebsocketEntity | string): boolean;
-	addMember(entity: I_WebsocketClient): I_WebsocketClient | false;
+	addMember(entity: I_WebsocketClient, options?: AddMemberOptions): AddMemberResult;
+	removeMemberInternal(entity: I_WebsocketClient): void;
 	removeMember(entity: I_WebsocketEntity): I_WebsocketClient | false;
 	getMember(client: I_WebsocketEntity | string): I_WebsocketClient | undefined;
 	getMembers(clients?: string[] | I_WebsocketEntity[]): I_WebsocketClient[];
