@@ -42,11 +42,10 @@ export interface I_WebsocketConstructor {
  * Websocket.Broadcast("lobby", { type: "chat", content: { message: "Hi!" } });
  *
  * // Extension - override instance methods
- * class GameWebsocket extends Websocket {
- *   protected createClient(entity: I_WebsocketEntity) {
- *     return new GameClient(entity);
+ * MyWebsocket extends Websocket:
+ *   protected createClient(entity) {
+ *     return new MyCustomClient(entity);
  *   }
- * }
  */
 export default class Websocket extends Singleton {
 	protected _channels: WebsocketChannel;

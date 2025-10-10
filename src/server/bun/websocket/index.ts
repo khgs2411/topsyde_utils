@@ -8,7 +8,7 @@ export * from './Channel';
 export * from './Client';
 export * from './websocket.enums';
 export * from './websocket.types';
-export { default as GameWebsocket } from './Websocket';
+export { default as Websocket } from './Websocket';
 export { default as Message } from './Message';
 export { default as Channel } from './Channel';
 export { default as Client } from './Client';
