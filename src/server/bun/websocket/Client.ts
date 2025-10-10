@@ -200,8 +200,8 @@ export default class Client implements I_WebsocketClient {
 			}
 			this.ws.send(JSON.stringify({ client: this.whoami(), ...message }));
 		} catch (error) {
-			Lib.Error(`Failed to send message to client ${this.id}:`, error);
-			if (error instanceof Error && error.message.includes('closed')) {
+			Lib.Warn(`Failed to send message to client ${this.id}:`, error);
+			if (error instanceof Error && error.message.includes("closed")) {
 				this.markDisconnected();
 			}
 		}

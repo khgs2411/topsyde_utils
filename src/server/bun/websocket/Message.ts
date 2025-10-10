@@ -1,11 +1,5 @@
 import Guards from "../../../utils/Guards";
-import {
-	WebsocketStructuredMessage,
-	WebsocketMessage,
-	WebsocketMessageOptions,
-	I_WebsocketClient,
-	WebsocketEntityData,
-} from "./websocket.types";
+import { WebsocketStructuredMessage, WebsocketMessage, WebsocketMessageOptions, I_WebsocketClient, WebsocketEntityData } from "./websocket.types";
 
 export default class Message {
 	// Shared template for all messages
@@ -13,7 +7,7 @@ export default class Message {
 		type: "",
 		content: {},
 		channel: "",
-		timestamp: ""
+		timestamp: "",
 	};
 
 	// Private constructor to prevent instantiation
@@ -53,12 +47,15 @@ export default class Message {
 			if (options.client && Guards.IsObject(options.client) && Guards.IsString(options.client.id, true)) {
 				output.client = {
 					id: options.client.id,
-					name: options.client.name,
+					name: options.client.name || "Unknown",
 				};
 			}
 
 			// Include channel metadata if requested
-			if (options.includeMetadata !== false) output.metadata = options.metadata;
+			// Include channel metadata if provided as an object
+			if (options.metadata && Guards.IsObject(options.metadata) && !Guards.IsArray(options.metadata)) {
+				output.metadata = options.metadata;
+			}
 
 			// Add timestamp if requested (default: true)
 			if (options.includeTimestamp !== false) {

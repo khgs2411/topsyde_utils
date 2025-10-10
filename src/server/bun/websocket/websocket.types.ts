@@ -180,9 +180,7 @@ export type BroadcastOptions = WebsocketMessageOptions & {
 };
 
 // Result type for addMember operations
-export type AddMemberResult =
-	| { success: true; client: I_WebsocketClient }
-	| { success: false; reason: 'full' | 'already_member' | 'error'; error?: Error };
+export type AddMemberResult = { success: true; client: I_WebsocketClient } | { success: false; reason: "full" | "already_member" | "error"; error?: Error };
 
 // Options for addMember operations
 export type AddMemberOptions = {
