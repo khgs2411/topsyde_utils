@@ -292,8 +292,10 @@ describe("Singleton", () => {
 	});
 	it("should allow custom client implementation", () => {
 		class CustomClient extends Client {
-			public send(message: WebsocketStructuredMessage) {
-				console.log("CONSOLE LOG");
+			public send(message: string, options?: app.WebsocketMessageOptions): void;
+			public send(message: WebsocketStructuredMessage): void;
+			public send(message: WebsocketStructuredMessage | string, options?: app.WebsocketMessageOptions): void {
+				console.log("CUSTOM SEND");
 			}
 		}
 		const ws = app.Websocket.GetInstance<app.Websocket>({ clientClass: CustomClient });
@@ -382,7 +384,7 @@ describe("Singleton", () => {
 		// Update expectations to match actual structure - we don't care about exact format
 		// as long as it contains the message
 		expect(parsedJson).toHaveProperty("type", message.type);
-		expect(parsedJson).toHaveProperty("channel", channel.name);
+		expect(parsedJson).toHaveProperty("channel", channel.id);
 
 		spy.mockRestore();
 	});
@@ -395,7 +397,7 @@ describe("Singleton", () => {
 		ws.set(server);
 
 		const channel = ws.createChannel("test", "Test Channel");
-		const message = { type: "test", content: { message: "test message" },  };
+		const message = { type: "test", content: { message: "test message" } };
 		channel.broadcast(message, { debug: true, client: { id: "test", name: "Test Client" } });
 		expect(mockPublish).toHaveBeenCalledWith(channel.id, expect.any(String));
 	});

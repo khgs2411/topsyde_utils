@@ -83,7 +83,7 @@ describe("Websocket Tests", () => {
 			content: { text: "Broadcast to all channels" },
 		};
 
-		_Websocket.BraodcastAll(message);
+		_Websocket.BroadCastAll(message);
 		// No assertion needed, just checking it doesn't throw
 	});
 
