@@ -44,6 +44,10 @@
       "types": "./dist/client/vite/plugins/index.d.ts",
       "default": "./dist/client/vite/plugins/index.js"
     },
+    "./external": {
+      "types": "./dist/external/index.d.ts",
+      "default": "./dist/external/index.js"
+    },
     "./server/base": {
       "types": "./dist/server/base/index.d.ts",
       "default": "./dist/server/base/index.js"
@@ -71,6 +75,9 @@
       ],
       "client/vite/plugins": [
         "./dist/client/vite/plugins/index.d.ts"
+      ],
+      "external": [
+        "./dist/external/index.d.ts"
       ],
       "server/base": [
         "./dist/server/base/index.d.ts"
