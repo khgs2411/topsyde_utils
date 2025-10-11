@@ -31,13 +31,15 @@ export const useRxjs = <T extends string>(
 	function $next(namespace: RxjsNamespaces<T>, payload: I_RxjsPayload<any>): void;
 	function $next(cta: string, data: RxjsDataType): void;
 	function $next(firstParam: RxjsNamespaces<T> | string, secondParam: I_RxjsPayload<RxjsDataType> | any): void {
-		if (typeof firstParam !== "string" && secondParam && typeof secondParam === "object" && "cta" in secondParam && "data" in secondParam) {
-			const ns = firstParam;
+		// Check if second param is a payload object (has both 'cta' and 'data' properties)
+		if (secondParam && typeof secondParam === "object" && "cta" in secondParam && "data" in secondParam) {
+			const ns = firstParam as RxjsNamespaces<T>;
 			const payload: I_RxjsPayload<any> = secondParam;
 			instance.next(ns, payload);
 			return;
 		}
 
+		// Otherwise treat first param as cta and second as data
 		const cta = firstParam as string;
 		const data = secondParam as RxjsDataType;
 		const namespaces = Guards.IsArray(_namespace) ? _namespace : [_namespace];
