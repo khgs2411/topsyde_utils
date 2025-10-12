@@ -8,7 +8,7 @@ describe("Websocket Tests", () => {
 
 	beforeEach(() => {
 		// Reset all singleton instances before each test
-		Singleton.ResetInstances();
+		Singleton.ResetAllInstances();
 
 		// Create a mock server
 		server = {

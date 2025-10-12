@@ -86,7 +86,7 @@ class Level3 extends Level2 {
 describe("Singleton", () => {
 	beforeEach(() => {
 		// Reset the singleton instances before each test
-		Singleton.ResetInstances();
+		Singleton.ResetAllInstances();
 	});
 
 	test("BaseClass should return a singleton instance", () => {
@@ -179,7 +179,7 @@ describe("Singleton", () => {
 		const derivedInstance1 = DerivedClass.GetInstance<DerivedClass>();
 
 		// Reset all instances
-		Singleton.ResetInstances();
+		Singleton.ResetAllInstances();
 
 		// Get new instances
 		const baseInstance2 = BaseClass.GetInstance<BaseClass>();
@@ -196,7 +196,7 @@ describe("Singleton", () => {
 		const derivedInstance1 = DerivedClass.GetInstance<DerivedClass>();
 
 		// Reset only the BaseClass instance
-		Singleton.ResetInstance("BaseClass");
+		BaseClass.ResetInstance();
 
 		// Get new instances
 		const baseInstance2 = BaseClass.GetInstance<BaseClass>();
