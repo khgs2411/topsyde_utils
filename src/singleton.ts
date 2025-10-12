@@ -7,19 +7,6 @@
  * - Proper instance lifecycle management
  * - Thread-safe for async operations
  *
- * @example
- * class DataStore extends Singleton {
- *   private data: Record<string, any> = {};
- *
- *   protected constructor(initialData?: Record<string, any>) {
- *     super();
- *     if (initialData) this.data = initialData;
- *   }
- *
- *   static getInstance(initialData?: Record<string, any>): DataStore {
- *     return super.GetInstance<DataStore>(initialData);
- *   }
- * }
  */
 export default abstract class Singleton {
 	// Use Symbol-based registry to avoid minification issues
@@ -83,7 +70,7 @@ export default abstract class Singleton {
 		const key = Singleton.getClassKey(this);
 		const instance = Singleton._instances.get(key);
 
-		if (instance && typeof (instance as any).onDestroy === 'function') {
+		if (instance && typeof (instance as any).onDestroy === "function") {
 			(instance as any).onDestroy();
 		}
 
@@ -98,7 +85,7 @@ export default abstract class Singleton {
 	public static ResetAllInstances(): void {
 		// Call onDestroy on all instances if they have it
 		for (const instance of Singleton._instances.values()) {
-			if (typeof (instance as any).onDestroy === 'function') {
+			if (typeof (instance as any).onDestroy === "function") {
 				(instance as any).onDestroy();
 			}
 		}
