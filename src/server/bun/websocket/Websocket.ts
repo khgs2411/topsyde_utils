@@ -142,15 +142,15 @@ export default class Websocket extends Singleton {
 		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
 		this._clients.set(client.id, client);
 
+		// Mark as fully connected
+		client.markConnected();
+
 		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
 
 		// Client handles its own joining logic with rollback support
 		if (!client.joinChannel(global)) {
 			throw new Error("Failed to join global channel");
 		}
-
-		// Mark as fully connected
-		client.markConnected();
 
 		if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);
 	};
