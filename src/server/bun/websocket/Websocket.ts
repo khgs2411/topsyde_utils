@@ -18,6 +18,7 @@ import { E_WebsocketMessageType } from "./websocket.enums";
 
 export type WebsocketConstructorOptions = {
 	debug?: boolean;
+	global_channel_limit?: number;
 };
 
 export interface I_WebsocketConstructor {
@@ -64,7 +65,7 @@ export default class Websocket extends Singleton {
 		this._clientClass = options?.clientClass ?? Client;
 		this._channelClass = options?.channelClass ?? Channel.GetChannelType(options?.channels);
 		this._options = options?.options ?? { debug: false };
-		this.createChannel("global", "Global", 1000);
+		this.createChannel("global", "Global", this._options.global_channel_limit ?? 1000);
 		this._ws_interface_handlers = this._ws_interface?.handlers(this._channels, this._clients) ?? {};
 	}
 
