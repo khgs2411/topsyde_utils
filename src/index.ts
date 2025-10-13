@@ -37,7 +37,7 @@ export * from "./utils/BaseDto";
 export * from "./utils/dto_validators/IsNumberOrRangeConstraint";
 
 // Export default classes
-export { default as DataStore } from "./singleton";
+export { default as Singleton } from "./singleton";
 export { default as Initializable } from "./initializable";
 export { default as Application } from "./application";
 export { default as Throwable } from "./throwable";
