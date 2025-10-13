@@ -82,7 +82,7 @@ export default class Client implements I_WebsocketClient {
 	}
 
 	public canReceiveMessages(): boolean {
-		return this._state === E_ClientState.CONNECTED;
+		return this._state === E_ClientState.CONNECTED || this._state === E_ClientState.DISCONNECTING;
 	}
 
 	public markConnected(): void {
