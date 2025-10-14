@@ -111,18 +111,18 @@ export default class Client implements I_WebsocketClient {
 		};
 	}
 
-	public joinChannel(channel: I_WebsocketChannel, send: boolean = true): boolean {
+	public joinChannel(channel: I_WebsocketChannel, send: boolean = true): { success: boolean; reason: string } {
 		const channel_id = channel.getId();
 
 		// Check if already joined
 		if (this.channels.has(channel_id)) {
-			return false;
+			return { success: false, reason: "already_member" };
 		}
 
 		// Try to add to channel first
 		const result = channel.addMember(this);
 		if (!result.success) {
-			return false; // Channel full, already member, or other issue
+			return { success: false, reason: result.reason }; // Channel full, already member, or other issue
 		}
 
 		try {
@@ -140,7 +140,7 @@ export default class Client implements I_WebsocketClient {
 				});
 			}
 
-			return true;
+			return { success: true, reason: "" };
 		} catch (error) {
 			// Rollback channel membership on failure
 			channel.removeMemberInternal(this);

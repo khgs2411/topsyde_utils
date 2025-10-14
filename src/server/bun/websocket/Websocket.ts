@@ -149,8 +149,9 @@ export default class Websocket extends Singleton {
 		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
 
 		// Client handles its own joining logic with rollback support
-		if (!client.joinChannel(global)) {
-			throw new Error("Failed to join global channel");
+		const joinResult = client.joinChannel(global);
+		if (!joinResult.success) {
+			throw new Error("Failed to join global channel: " + joinResult.reason);
 		}
 
 		if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);

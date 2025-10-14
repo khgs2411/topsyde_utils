@@ -157,7 +157,7 @@ export interface I_WebsocketClient extends I_WebsocketEntity {
 	send(message: string, options?: WebsocketMessageOptions): void;
 	send(message: WebsocketStructuredMessage): void;
 	subscribe(channel: string): any;
-	joinChannel(channel: I_WebsocketChannel, send?: boolean): boolean;
+	joinChannel(channel: I_WebsocketChannel, send?: boolean): { success: boolean; reason: string };
 	leaveChannel(channel: I_WebsocketChannel, send?: boolean): void;
 	joinChannels(channels: I_WebsocketChannel[], send?: boolean): void;
 	leaveChannels(channels?: I_WebsocketChannel[], send?: boolean): void;
