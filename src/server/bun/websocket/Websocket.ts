@@ -57,6 +57,7 @@ export default class Websocket extends Singleton {
 	protected _ws_interface?: I_WebsocketInterface;
 	protected _options: WebsocketConstructorOptions;
 	protected _ws_interface_handlers: Partial<WebSocketHandler<WebsocketEntityData>>;
+	protected _lastId = 0;
 
 	protected constructor(options?: I_WebsocketConstructor) {
 		super();
@@ -148,7 +149,7 @@ export default class Websocket extends Singleton {
 
 			const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
 			this._clients.set(client.id, client);
-
+			this._lastId++;
 			// Mark as fully connected
 			client.markConnected();
 
@@ -316,6 +317,11 @@ export default class Websocket extends Singleton {
 	public static GetClients() {
 		const ws = this.GetInstance<Websocket>();
 		return Array.from(ws._clients.values());
+	}
+
+	public static GetLastId() {
+		const ws = this.GetInstance<Websocket>();
+		return ws._lastId;
 	}
 
 	/**
