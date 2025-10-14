@@ -126,58 +126,73 @@ export default class Websocket extends Singleton {
 	}
 
 	private clientMessageReceived = (ws: ServerWebSocket<WebsocketEntityData>, message: BunWebsocketMessage) => {
-		if (Websocket.Heartbeat(ws, message)) return;
+		try {
+			if (Websocket.Heartbeat(ws, message)) return;
 
-		if (this._ws_interface_handlers.message) return this._ws_interface_handlers.message(ws, message);
+			if (this._ws_interface_handlers.message) return this._ws_interface_handlers.message(ws, message);
 
-		ws.send("This is the message from the server: " + message);
-		Websocket.BroadCastAll({ type: "client.message.received", content: { message } });
+			ws.send("This is the message from the server: " + message);
+			Websocket.BroadCastAll({ type: "client.message.received", content: { message } });
+		} catch (error) {
+			console.error(error instanceof Error ? error.message : error);
+			ws.close(1011, "Internal server error during message handling: " + (error instanceof Error ? error.message : error));
+		}
 	};
 
 	private clientConnected = (ws: ServerWebSocket<WebsocketEntityData>) => {
-		if (this._options.debug) Lib.Log("[debug] Client connected", ws.data);
+		try {
+			if (this._options.debug) Lib.Log("[debug] Client connected", ws.data);
 
-		const global = this._channels.get("global");
-		if (!global) throw new Error("Global channel not found");
+			const global = this._channels.get("global");
+			if (!global) throw new Error("Global channel not found");
 
-		const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
-		this._clients.set(client.id, client);
+			const client = Websocket.CreateClient({ id: ws.data.id, ws: ws, name: ws.data.name });
+			this._clients.set(client.id, client);
 
-		// Mark as fully connected
-		client.markConnected();
+			// Mark as fully connected
+			client.markConnected();
 
-		client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
+			client.send({ type: E_WebsocketMessageType.CLIENT_CONNECTED, content: { message: "Welcome to the server", client: client.whoami() } });
 
-		// Client handles its own joining logic with rollback support
-		const joinResult = client.joinChannel(global);
-		if (!joinResult.success) {
-			throw new Error("Failed to join global channel: " + joinResult.reason);
+			// Client handles its own joining logic with rollback support
+			const joinResult = client.joinChannel(global);
+			if (!joinResult.success) {
+				throw new Error("Failed to join global channel: " + joinResult.reason);
+			}
+
+			if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);
+		} catch (error) {
+			console.error(error instanceof Error ? error.message : error);
+			ws.close(1011, "Internal server error during connection setup: " + (error instanceof Error ? error.message : error));
 		}
-
-		if (this._ws_interface_handlers.open) this._ws_interface_handlers.open(ws);
 	};
 
 	private clientDisconnected = (ws: ServerWebSocket<WebsocketEntityData>, code: number, reason: string) => {
-		if (this._options.debug) Lib.Log("Client disconnected", ws.data);
+		try {
+			if (this._options.debug) Lib.Log("Client disconnected", ws.data);
 
-		const client = this._clients.get(ws.data.id);
-		if (!client) return;
+			const client = this._clients.get(ws.data.id);
+			if (!client) return;
 
-		// Mark as disconnecting
-		client.markDisconnecting();
+			// Mark as disconnecting
+			client.markDisconnecting();
 
-		if (this._ws_interface_handlers.close) this._ws_interface_handlers.close(ws, code, reason);
+			if (this._ws_interface_handlers.close) this._ws_interface_handlers.close(ws, code, reason);
 
-		// Remove from all channels
-		this._channels.forEach((channel) => {
-			channel.removeMember(client);
-		});
+			// Remove from all channels
+			this._channels.forEach((channel) => {
+				channel.removeMember(client);
+			});
 
-		// Mark as disconnected
-		client.markDisconnected();
+			// Mark as disconnected
+			client.markDisconnected();
 
-		// Remove from registry
-		this._clients.delete(ws.data.id);
+			// Remove from registry
+			this._clients.delete(ws.data.id);
+		} catch (error) {
+			console.error(error instanceof Error ? error.message : error);
+			ws.close(1011, "Internal server error during disconnection: " + (error instanceof Error ? error.message : error));
+		}
 	};
 
 	private handleHeartbeat = (ws: ServerWebSocket<WebsocketEntityData>, message: BunWebsocketMessage) => {
