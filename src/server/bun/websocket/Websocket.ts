@@ -184,11 +184,10 @@ export default class Websocket extends Singleton {
 				channel.removeMember(client);
 			});
 
-			// Mark as disconnected
-			client.markDisconnected();
-
 			// Remove from registry
 			this._clients.delete(ws.data.id);
+			// Mark as disconnected
+			client.markDisconnected();
 		} catch (error) {
 			console.error(error instanceof Error ? error.message : error);
 			ws.close(1011, "Internal server error during disconnection: " + (error instanceof Error ? error.message : error));

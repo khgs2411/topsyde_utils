@@ -156,7 +156,7 @@ export default class Client implements I_WebsocketClient {
 		if (send)
 			this.send({
 				type: E_WebsocketMessageType.CLIENT_LEAVE_CHANNEL,
-				content: { message: "Left the channel" },
+				content: { message: "(" + channel_id + ") Left the channel" },
 				channel: channel_id,
 				client: this.whoami(),
 			});
