@@ -29,9 +29,30 @@ function isApplicationResponse<T>(data: T | I_ApplicationResponse<T>): data is I
 }
 
 class Application {
-	public static Response<T>(data: T | I_ApplicationResponse<T>, status = 200, headers?: HeadersInit): Response {
+
+	public static Response<T>(data: T | I_ApplicationResponse<T>, options?: { after_action?: () => void | Promise<void>, before_action: () => void }, status = 200, headers?: HeadersInit): Response {
+		const { after_action, before_action } = options || {};
+		Application.BeforeAction(before_action);
 		const response = isApplicationResponse(data) ? data : { status: true, data };
-		return Response.json(response, RESPONSE_INIT(status, headers));
+		const output = Response.json(response, RESPONSE_INIT(status, headers));
+		Application.AfterAction(after_action);
+		return output;
+	}
+
+	private static AfterAction(after_action?: () => void | Promise<void>) {
+		if (after_action) {
+			queueMicrotask(async () => {
+				try {
+					await after_action();
+				} catch (error) {
+					console.error('[Application] After-action error:', error);
+				}
+			});
+		}
+	}
+
+	private static BeforeAction(before_action: Function | undefined) {
+		if (before_action) before_action();
 	}
 
 	public static Error<T extends BodyInit | unknown | Error>(error: T | I_ApplicationResponse<T>, status = 200, headers?: HeadersInit): Response {
