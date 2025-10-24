@@ -29,8 +29,12 @@ function isApplicationResponse<T>(data: T | I_ApplicationResponse<T>): data is I
 }
 
 class Application {
-
-	public static Response<T>(data: T | I_ApplicationResponse<T>, options?: { after_action?: () => void | Promise<void>, before_action: () => void }, status = 200, headers?: HeadersInit): Response {
+	public static Response<T>(
+		data: T | I_ApplicationResponse<T>,
+		options?: { after_action?: () => void | Promise<void>; before_action?: () => void },
+		status = 200,
+		headers?: HeadersInit,
+	): Response {
 		const { after_action, before_action } = options || {};
 		Application.BeforeAction(before_action);
 		const response = isApplicationResponse(data) ? data : { status: true, data };
@@ -45,13 +49,13 @@ class Application {
 				try {
 					await after_action();
 				} catch (error) {
-					console.error('[Application] After-action error:', error);
+					console.error("[Application] After-action error:", error);
 				}
 			});
 		}
 	}
 
-	private static BeforeAction(before_action: Function | undefined) {
+	private static BeforeAction(before_action?: () => void) {
 		if (before_action) before_action();
 	}
 

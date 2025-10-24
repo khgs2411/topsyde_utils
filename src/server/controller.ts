@@ -42,12 +42,12 @@ export default abstract class Controller extends Initializable {
 		return await action(request);
 	}
 
-	public success<T>(data: T): I_ApplicationResponse<T> {
-		return { status: true, data };
+	public success<T>(data: T, after_action?: Function): I_ApplicationResponse<T> {
+		return { status: true, data, after_action };
 	}
 
-	public failure<T>(data: T): I_ApplicationResponse<T> {
-		return { status: false, data };
+	public failure<T>(data: T, after_action?: Function): I_ApplicationResponse<T> {
+		return { status: false, data, after_action };
 	}
 
 	private setControllerMap() {

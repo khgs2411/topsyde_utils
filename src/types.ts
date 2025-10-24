@@ -7,4 +7,5 @@ export interface I_ApplicationResponse<T = unknown> {
 	status: boolean | number;
 	data: T;
 	error?: T;
+	after_action?: Function;
 }
