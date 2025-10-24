@@ -7,5 +7,6 @@ export interface I_ApplicationResponse<T = unknown> {
 	status: boolean | number;
 	data: T;
 	error?: T;
-	after_action?: Function;
+	after_action?: () => void | Promise<void>;
+	before_action?: () => void;
 }
