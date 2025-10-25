@@ -1,7 +1,16 @@
 import { Guards, Lib } from "../../../utils";
 import Message from "./Message";
 import Websocket from "./Websocket";
-import type { BroadcastOptions, I_WebsocketChannel, I_WebsocketClient, I_WebsocketEntity, WebsocketChannel, WebsocketMessage, AddMemberResult, AddMemberOptions } from "./websocket.types";
+import type {
+	BroadcastOptions,
+	I_WebsocketChannel,
+	I_WebsocketClient,
+	I_WebsocketEntity,
+	WebsocketChannel,
+	WebsocketMessage,
+	AddMemberResult,
+	AddMemberOptions,
+} from "./websocket.types";
 import { E_WebsocketMessageType } from "./websocket.enums";
 
 /**
@@ -98,7 +107,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	public addMember(client: I_WebsocketClient, options?: AddMemberOptions): AddMemberResult {
 		// Check if already a member
 		if (this.members.has(client.id)) {
-			return { success: false, reason: 'already_member' };
+			return { success: false, reason: "already_member" };
 		}
 
 		// Check capacity (atomic check)
@@ -107,7 +116,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			if (options?.notify_when_full) {
 				this.notifyChannelFull(client);
 			}
-			return { success: false, reason: 'full' };
+			return { success: false, reason: "full" };
 		}
 
 		try {
@@ -118,10 +127,23 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			this.members.delete(client.id);
 			return {
 				success: false,
-				reason: 'error',
-				error: error instanceof Error ? error : new Error(String(error))
+				reason: "error",
+				error: error instanceof Error ? error : new Error(String(error)),
 			};
 		}
+	}
+
+	public addMembers(clients: I_WebsocketClient[], options?: AddMemberOptions): AddMemberResult[] {
+		const results: AddMemberResult[] = [];
+		for (const client of clients) {
+			const result = this.addMember(client, options);
+			results.push(result);
+			if (!result.success) {
+				// Stop adding further members on failure
+				break;
+			}
+		}
+		return results;
 	}
 
 	private notifyChannelFull(client: I_WebsocketClient): void {
@@ -129,9 +151,9 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 			type: E_WebsocketMessageType.ERROR,
 			content: {
 				message: `Channel "${this.name}" is full (${this.limit} members)`,
-				code: 'CHANNEL_FULL',
-				channel: this.id
-			}
+				code: "CHANNEL_FULL",
+				channel: this.id,
+			},
 		});
 	}
 
