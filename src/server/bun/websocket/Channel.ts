@@ -287,7 +287,7 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	public delete() {
 		//first remove all members
 		this.members.forEach((member) => {
-			this.removeMember(member);
+			this.removeMember(member, { notify: true });
 		});
 		//then clear members map
 		this.members.clear();
