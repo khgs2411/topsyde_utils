@@ -284,6 +284,15 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		return size < this.limit;
 	}
 
+	public delete() {
+		//first remove all members
+		this.members.forEach((member) => {
+			this.removeMember(member);
+		});
+		//then clear members map
+		this.members.clear();
+	}
+
 	public static GetChannelType(channels: WebsocketChannel<I_WebsocketChannel> | undefined) {
 		if (!channels) return Channel;
 		if (channels.size > 0) {

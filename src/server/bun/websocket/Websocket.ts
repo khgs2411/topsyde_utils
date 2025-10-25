@@ -103,6 +103,9 @@ export default class Websocket extends Singleton {
 	 * @param id - The id of the channel
 	 */
 	public removeChannel(id: string) {
+		const channel = this._channels.get(id);
+		if (!channel) return;
+		channel.delete();
 		this._channels.delete(id);
 	}
 

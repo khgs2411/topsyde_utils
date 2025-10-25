@@ -106,6 +106,7 @@ export {
 	BroadcastOptions,
 	AddMemberResult,
 	AddMemberOptions,
+	RemoveMemberOptions,
 	I_WebsocketChannel,
 	WebsocketInterfaceHandlers,
 	I_WebsocketInterface,
