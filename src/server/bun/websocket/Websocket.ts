@@ -91,8 +91,8 @@ export default class Websocket extends Singleton {
 	 * @param limit - The limit of the channel
 	 * @returns The created channel
 	 */
-	public createChannel(id: string, name: string, limit?: number): I_WebsocketChannel {
-		if (this._channels.has(id)) return this._channels.get(id) as I_WebsocketChannel;
+	public createChannel(id: string, name: string, limit?: number): Channel {
+		if (this._channels.has(id)) return this._channels.get(id) as Channel;
 		const channel = new this._channelClass(id, name, this, limit);
 		this._channels.set(id, channel);
 		return channel;
