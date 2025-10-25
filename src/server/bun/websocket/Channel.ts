@@ -10,6 +10,7 @@ import type {
 	WebsocketMessage,
 	AddMemberResult,
 	AddMemberOptions,
+	RemoveMemberOptions,
 } from "./websocket.types";
 import { E_WebsocketMessageType } from "./websocket.enums";
 
@@ -104,14 +105,19 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 		return this.members.has(client.id);
 	}
 
-	public addMember(client: I_WebsocketClient, options?: AddMemberOptions): AddMemberResult {
+	/**
+	 * ATOMIC: Add member to channel (membership only, no side effects)
+	 * Internal method used for rollback-safe operations
+	 * @internal
+	 */
+	private addToMembersMap(client: I_WebsocketClient, options?: AddMemberOptions): AddMemberResult {
 		// Check if already a member
 		if (this.members.has(client.id)) {
 			return { success: false, reason: "already_member" };
 		}
 
-		// Check capacity (atomic check)
-		if (this.members.size >= this.limit) {
+		// Check capacity
+		if (!this.canAddMember()) {
 			// Optionally notify client why they can't join
 			if (options?.notify_when_full) {
 				this.notifyChannelFull(client);
@@ -130,6 +136,46 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 				reason: "error",
 				error: error instanceof Error ? error : new Error(String(error)),
 			};
+		}
+	}
+
+	/**
+	 * Add a client to this channel with full coordination
+	 * Handles: membership + WebSocket subscription + client-side tracking + optional notification
+	 * This ensures two-way coordination between channel and client
+	 */
+	public addMember(client: I_WebsocketClient, options?: AddMemberOptions): AddMemberResult {
+		// 1. Atomic membership add
+		const result = this.addToMembersMap(client, options);
+		if (!result.success) {
+			return result;
+		}
+
+		try {
+			// 2. Subscribe client's WebSocket to channel pub/sub topic
+			// CRITICAL: Without this, client won't receive channel.broadcast() messages
+			client.subscribe(this.id);
+
+			// 3. Track channel on client side (client's channels map)
+			client.trackChannel(this);
+
+			// 4. Optional welcome notification
+			if (options?.notify) {
+				client.send({
+					type: E_WebsocketMessageType.CLIENT_JOIN_CHANNEL,
+					content: { message: "Welcome to the channel" },
+					channel: this.id,
+					client: client.whoami(),
+				});
+			}
+
+			return result;
+		} catch (error) {
+			// Rollback on failure: remove membership + unsubscribe + untrack
+			this.removeFromMembersMap(client);
+			client.unsubscribe(this.id);
+			client.untrackChannel(this);
+			throw error;
 		}
 	}
 
@@ -162,16 +208,40 @@ export default class Channel<T extends Websocket = Websocket> implements I_Webso
 	 * Used for rollback operations when joinChannel fails.
 	 * @internal
 	 */
-	public removeMemberInternal(client: I_WebsocketClient): void {
+	public removeFromMembersMap(client: I_WebsocketClient): void {
 		this.members.delete(client.id);
 	}
 
-	public removeMember(entity: I_WebsocketEntity) {
+	/**
+	 * Remove a client from this channel with full coordination
+	 * Handles: membership removal + WebSocket unsubscription + client-side tracking removal + optional notification
+	 * This ensures two-way coordination between channel and client
+	 */
+	public removeMember(entity: I_WebsocketEntity, options?: RemoveMemberOptions) {
+		// 1. Check if member exists
 		if (!this.members.has(entity.id)) return false;
 		const client = this.members.get(entity.id);
 		if (!client) return false;
-		client.leaveChannel(this);
-		this.members.delete(entity.id);
+
+		// 2. Remove from channel members (atomic operation)
+		this.removeFromMembersMap(client);
+
+		// 3. Unsubscribe client's WebSocket from channel pub/sub topic
+		client.unsubscribe(this.id);
+
+		// 4. Untrack channel on client side (remove from client's channels map)
+		client.untrackChannel(this);
+
+		// 5. Optional goodbye notification
+		if (options?.notify) {
+			client.send({
+				type: E_WebsocketMessageType.CLIENT_LEAVE_CHANNEL,
+				content: { message: "You left the channel" },
+				channel: this.id,
+				client: client.whoami(),
+			});
+		}
+
 		return client;
 	}
 

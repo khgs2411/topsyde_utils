@@ -157,6 +157,8 @@ export interface I_WebsocketClient extends I_WebsocketEntity {
 	send(message: string, options?: WebsocketMessageOptions): void;
 	send(message: WebsocketStructuredMessage): void;
 	subscribe(channel: string): any;
+	trackChannel(channel: I_WebsocketChannel): void;
+	untrackChannel(channel: I_WebsocketChannel): void;
 	joinChannel(channel: I_WebsocketChannel, send?: boolean): { success: boolean; reason: string };
 	leaveChannel(channel: I_WebsocketChannel, send?: boolean): void;
 	joinChannels(channels: I_WebsocketChannel[], send?: boolean): void;
@@ -186,7 +188,16 @@ export type AddMemberResult = { success: true; client: I_WebsocketClient } | { s
 export type AddMemberOptions = {
 	/** Whether to notify client when channel is full (default: false) */
 	notify_when_full?: boolean;
+	/** Whether to send welcome notification to client on successful join (default: false) */
+	notify?: boolean;
 };
+
+// Options for removeMember operations
+export type RemoveMemberOptions = {
+	/** Whether to send goodbye notification to client on successful leave (default: false) */
+	notify?: boolean;
+};
+
 export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_WebsocketChannelEntity<T> {
 	limit: number;
 	members: Map<string, I_WebsocketClient>;
@@ -195,8 +206,8 @@ export interface I_WebsocketChannel<T extends Websocket = Websocket> extends I_W
 	broadcast(message: WebsocketStructuredMessage | string, options?: BroadcastOptions): void;
 	hasMember(client: I_WebsocketEntity | string): boolean;
 	addMember(entity: I_WebsocketClient, options?: AddMemberOptions): AddMemberResult;
-	removeMemberInternal(entity: I_WebsocketClient): void;
-	removeMember(entity: I_WebsocketEntity): I_WebsocketClient | false;
+	removeFromMembersMap(entity: I_WebsocketClient): void;
+	removeMember(entity: I_WebsocketEntity, options?: RemoveMemberOptions): I_WebsocketClient | false;
 	getMember(client: I_WebsocketEntity | string): I_WebsocketClient | undefined;
 	getMembers(clients?: string[] | I_WebsocketEntity[]): I_WebsocketClient[];
 	getMetadata(): Record<string, string>;

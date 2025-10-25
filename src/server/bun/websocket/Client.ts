@@ -111,6 +111,28 @@ export default class Client implements I_WebsocketClient {
 		};
 	}
 
+	/**
+	 * HELPER: Track channel on client side (for channel.addMember coordination)
+	 * Allows channel to update client's internal channel map
+	 * @internal Used by channel.addMember()
+	 */
+	public trackChannel(channel: I_WebsocketChannel): void {
+		this.channels.set(channel.getId(), channel);
+	}
+
+	/**
+	 * HELPER: Untrack channel on client side (for channel.addMember rollback)
+	 * Allows channel to remove from client's internal channel map during rollback
+	 * @internal Used by channel.addMember() error handling
+	 */
+	public untrackChannel(channel: I_WebsocketChannel): void {
+		this.channels.delete(channel.getId());
+	}
+
+	/**
+	 * Join a channel (thin wrapper that delegates to channel.addMember)
+	 * channel.addMember() handles all coordination: membership + subscription + tracking + notification
+	 */
 	public joinChannel(channel: I_WebsocketChannel, send: boolean = true): { success: boolean; reason: string } {
 		const channel_id = channel.getId();
 
@@ -119,47 +141,30 @@ export default class Client implements I_WebsocketClient {
 			return { success: false, reason: "already_member" };
 		}
 
-		// Try to add to channel first
-		const result = channel.addMember(this);
+		// Delegate to channel (which now handles full coordination)
+		const result = channel.addMember(this, { notify: send });
+
 		if (!result.success) {
-			return { success: false, reason: result.reason }; // Channel full, already member, or other issue
+			return { success: false, reason: result.reason };
 		}
 
-		try {
-			// Subscribe to channel's pub/sub topic
-			this.subscribe(channel_id);
-			this.channels.set(channel_id, channel);
-
-			// Send join notification
-			if (send) {
-				this.send({
-					type: E_WebsocketMessageType.CLIENT_JOIN_CHANNEL,
-					content: { message: "Welcome to the channel" },
-					channel: channel_id,
-					client: this.whoami(),
-				});
-			}
-
-			return { success: true, reason: "" };
-		} catch (error) {
-			// Rollback channel membership on failure
-			channel.removeMemberInternal(this);
-			this.channels.delete(channel_id);
-			throw error;
-		}
+		return { success: true, reason: "" };
 	}
 
+	/**
+	 * Leave a channel (thin wrapper that delegates to channel.removeMember)
+	 * channel.removeMember() handles all coordination: membership removal + unsubscription + tracking removal + notification
+	 */
 	public leaveChannel(channel: I_WebsocketChannel, send: boolean = true) {
 		const channel_id = channel.getId();
-		this.channels.delete(channel_id);
-		this.unsubscribe(channel_id);
-		if (send)
-			this.send({
-				type: E_WebsocketMessageType.CLIENT_LEAVE_CHANNEL,
-				content: { message: "(" + channel_id + ") Left the channel" },
-				channel: channel_id,
-				client: this.whoami(),
-			});
+
+		// Check if we're in the channel
+		if (!this.channels.has(channel_id)) {
+			return;
+		}
+
+		// Delegate to channel (which now handles full coordination)
+		channel.removeMember(this, { notify: send });
 	}
 
 	public joinChannels(channels: I_WebsocketChannel[], send: boolean = true) {
