@@ -5,29 +5,15 @@
 export * from "./errors";
 export * from "./singleton";
 export * from "./initializable";
-export * from "./application";
 export * from "./consts";
 export * from "./types";
+export * from "./websocket.shared.types";
 export * from "./throwable";
 export * from "./enums";
 export * from "./client/api/base.api";
 export * from "./client/rxjs/useRxjs";
 export * from "./client/vite/plugins/topsydeUtilsVitePlugin";
 export * from "./external/re-exports";
-export * from "./server/controller";
-export * from "./server/service";
-export * from "./server/base/base.database";
-export * from "./server/bun/router/controller-discovery";
-export * from "./server/bun/router/routes";
-export * from "./server/bun/router/router";
-export * from "./server/bun/router/router.internal";
-export * from "./server/bun/websocket/Websocket";
-export * from "./server/bun/websocket/websocket.guards";
-export * from "./server/bun/websocket/Message";
-export * from "./server/bun/websocket/Channel";
-export * from "./server/bun/websocket/Client";
-export * from "./server/bun/websocket/websocket.enums";
-export * from "./server/bun/websocket/websocket.types";
 export * from "./utils/Rxjs";
 export * from "./utils/Lib";
 export * from "./utils/Guards";
@@ -39,19 +25,9 @@ export * from "./utils/dto_validators/IsNumberOrRangeConstraint";
 // Export default classes
 export { default as Singleton } from "./singleton";
 export { default as Initializable } from "./initializable";
-export { default as Application } from "./application";
 export { default as Throwable } from "./throwable";
 export { default as BaseAPI } from "./client/api/base.api";
 export { default as TopsydeUtilsVitePlugin } from "./client/vite/plugins/topsydeUtilsVitePlugin";
-export { default as Controller } from "./server/controller";
-export { default as Service } from "./server/service";
-export { default as Database } from "./server/base/base.database";
-export { default as Router } from "./server/bun/router/router";
-export { default as Router_Internal } from "./server/bun/router/router.internal";
-export { default as Websocket } from "./server/bun/websocket/Websocket";
-export { default as Message } from "./server/bun/websocket/Message";
-export { default as Channel } from "./server/bun/websocket/Channel";
-export { default as Client } from "./server/bun/websocket/Client";
 export { default as Lib } from "./utils/Lib";
 export { default as Guards } from "./utils/Guards";
 export { default as BaseEntity } from "./utils/BaseEntity";
@@ -60,9 +36,9 @@ export { default as Console } from "./utils/Console";
 // Re-export specific items for backward compatibility
 export { ERROR_CODE, HTTP_ERROR_CODE, WS_ERROR_CODE } from "./errors";
 export { InitializableOptions, InitializableEvent } from "./initializable";
-export { RESPONSE_INIT, HEADERS_INIT, RESPONSE_METHOD_OPTIONS } from "./application";
 export { DEFAULT_FALSE_RESPONSE, LOG_COLORS, LOG_ICONS } from "./consts";
 export { ClassConstructor, NonNullableType, ObjectKeys, KVObj, I_ApplicationResponse } from "./types";
+export { WebsocketEntityId, WebsocketEntityName, WebsocketEntityData, WebsocketMessage, WebsocketStructuredMessage } from "./websocket.shared.types";
 export { E_IS, E_ENVIRONMENTS } from "./enums";
 export { RxjsDataType, NamespaceActions, MultiNamespaceActions } from "./client/rxjs/useRxjs";
 export {
@@ -86,29 +62,4 @@ export {
 	IsNotEmpty,
 	IsNotEmptyObject,
 } from "./external/re-exports";
-export { ControllerResponse, ControllerAction, ControllerMap, ControllerOptions } from "./server/controller";
-export { Routes } from "./server/bun/router/routes";
-export { WebsocketConstructorOptions, I_WebsocketConstructor } from "./server/bun/websocket/Websocket";
-export { E_WebsocketMessageType, E_WebsocketMessagePriority, E_ClientState } from "./server/bun/websocket/websocket.enums";
-export {
-	BunWebsocketMessage,
-	WebsocketChannel,
-	WebsocketClients,
-	WebsocketMessageOptions,
-	WebsocketMessage,
-	WebsocketStructuredMessage,
-	WebsocketEntityId,
-	WebsocketEntityName,
-	WebsocketEntityData,
-	I_WebsocketEntity,
-	I_WebsocketClient,
-	I_WebsocketChannelEntity,
-	BroadcastOptions,
-	AddMemberResult,
-	AddMemberOptions,
-	RemoveMemberOptions,
-	I_WebsocketChannel,
-	WebsocketInterfaceHandlers,
-	I_WebsocketInterface,
-} from "./server/bun/websocket/websocket.types";
 export { E_SUBJET_TYPE, I_RxjsPayload, RxjsNamespaces, AsyncSubject, BehaviorSubject, ReplaySubject, Subject, Subscription } from "./utils/Rxjs";

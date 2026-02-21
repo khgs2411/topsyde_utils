@@ -1,5 +1,3 @@
-import * as fs from "fs";
-import * as path from "path";
 import { E_IS } from "../enums";
 import Throwable from "../throwable";
 
@@ -328,61 +326,8 @@ class Lib {
 		}
 	}
 
-	public static GetProjectRoot(startDir: string = __dirname, rootReference = "package.json"): string {
-		let currentDir = startDir;
-
-		while (!fs.existsSync(path.join(currentDir, rootReference))) {
-			const parentDir = path.resolve(currentDir, "..");
-			if (parentDir === currentDir) {
-				throw new Error("Unable to find project root");
-			}
-			currentDir = parentDir;
-		}
-
-		return currentDir;
-	}
-
 	public static async RunTaskWithTimeout(task: () => Promise<void>, timeout: number) {
 		return Promise.race([task(), new Promise((_, reject) => setTimeout(() => reject(new Error("Task timed out")), timeout))]);
-	}
-
-	public static GetFolderPath(folder: string): string {
-		return path.join(this.GetProjectRoot(), folder);
-	}
-
-	public static GetFilePath(folder: string, file: string): string {
-		return path.join(this.GetFolderPath(folder), file);
-	}
-
-	public static async CreateDirectory(folderToCreate: string) {
-		const directoryPath = Lib.GetFolderPath(folderToCreate);
-		await fs.promises.access(directoryPath, fs.constants.F_OK).catch(async () => {
-			await fs.promises.mkdir(directoryPath, { recursive: true });
-		});
-		return directoryPath;
-	}
-
-	public static async DeleteDirectory(folderToDelete: string) {
-		const directoryPath = path.join(this.GetProjectRoot(), folderToDelete);
-		await fs.promises.rm(directoryPath, { recursive: true, force: true });
-	}
-
-	public static async CreateFile(folderPath: string, filePath: string, content: string) {
-		await Lib.CreateDirectory(folderPath);
-		const file = Lib.GetFilePath(folderPath, filePath);
-		await fs.promises.writeFile(file, content, "utf8");
-	}
-
-	public static GetFile(filePathFromRoot: string) {
-		return fs.createReadStream(filePathFromRoot);
-	}
-
-	public static GetFilesInDirectory(directoryPath: string): string[] {
-		return fs.readdirSync(directoryPath);
-	}
-
-	public static async DeleteFile(filePathFromRoot: string) {
-		await fs.promises.unlink(filePathFromRoot);
 	}
 
 	public static Timestamp(log = false) {
@@ -455,10 +400,6 @@ class Lib {
 		return x.filter((x) => !y.includes(x));
 	}
 
-	public static async ReadFileContent(filePath: string): Promise<string> {
-		return fs.promises.readFile(filePath, "utf8");
-	}
-
 	public static async measureExecutionTime<T extends (...args: any[]) => any, U extends ReturnType<T>>(
 		func: T,
 		...args: Parameters<T>
@@ -521,22 +462,4 @@ export class Debug {
 		Lib.LogObject(object, text);
 	}
 
-	public static GetLocalIpAddress(): string {
-		try {
-			const { networkInterfaces } = require("os");
-			const nets = networkInterfaces();
-
-			for (const name of Object.keys(nets)) {
-				for (const net of nets[name]) {
-					// Skip internal and non-IPv4 addresses
-					if (!net.internal && net.family === "IPv4") {
-						return net.address;
-					}
-				}
-			}
-			return "127.0.0.1"; // Fallback to localhost
-		} catch (err) {
-			return "127.0.0.1"; // Fallback to localhost
-		}
-	}
 }
