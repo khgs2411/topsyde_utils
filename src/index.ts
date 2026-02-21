@@ -10,27 +10,17 @@ export * from "./types";
 export * from "./websocket.shared.types";
 export * from "./throwable";
 export * from "./enums";
-export * from "./client/api/base.api";
-export * from "./client/rxjs/useRxjs";
-export * from "./client/vite/plugins/topsydeUtilsVitePlugin";
-export * from "./external/re-exports";
 export * from "./utils/Rxjs";
 export * from "./utils/Lib";
 export * from "./utils/Guards";
-export * from "./utils/BaseEntity";
 export * from "./utils/Console";
-export * from "./utils/BaseDto";
-export * from "./utils/dto_validators/IsNumberOrRangeConstraint";
 
 // Export default classes
 export { default as Singleton } from "./singleton";
 export { default as Initializable } from "./initializable";
 export { default as Throwable } from "./throwable";
-export { default as BaseAPI } from "./client/api/base.api";
-export { default as TopsydeUtilsVitePlugin } from "./client/vite/plugins/topsydeUtilsVitePlugin";
 export { default as Lib } from "./utils/Lib";
 export { default as Guards } from "./utils/Guards";
-export { default as BaseEntity } from "./utils/BaseEntity";
 export { default as Console } from "./utils/Console";
 
 // Re-export specific items for backward compatibility
@@ -40,26 +30,4 @@ export { DEFAULT_FALSE_RESPONSE, LOG_COLORS, LOG_ICONS } from "./consts";
 export { ClassConstructor, NonNullableType, ObjectKeys, KVObj, I_ApplicationResponse } from "./types";
 export { WebsocketEntityId, WebsocketEntityName, WebsocketEntityData, WebsocketMessage, WebsocketStructuredMessage } from "./websocket.shared.types";
 export { E_IS, E_ENVIRONMENTS } from "./enums";
-export { RxjsDataType, NamespaceActions, MultiNamespaceActions } from "./client/rxjs/useRxjs";
-export {
-	Expose,
-	ValidationError,
-	IsArray,
-	IsBoolean,
-	IsDate,
-	IsEnum,
-	IsNumber,
-	IsObject,
-	IsOptional,
-	IsString,
-	Validate,
-	IsAlphanumeric,
-	IsBooleanString,
-	IsDateString,
-	IsDecimal,
-	IsDefined,
-	IsNumberString,
-	IsNotEmpty,
-	IsNotEmptyObject,
-} from "./external/re-exports";
 export { E_SUBJET_TYPE, I_RxjsPayload, RxjsNamespaces, AsyncSubject, BehaviorSubject, ReplaySubject, Subject, Subscription } from "./utils/Rxjs";
